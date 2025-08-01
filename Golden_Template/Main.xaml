@@ -494,6 +494,18 @@
                                   </InArgument>
                                 </Assign.Value>
                               </Assign>
+                              <Assign DisplayName="Create dt_Row" sap:VirtualizedContainerService.HintSize="438,60" sap2010:WorkflowViewState.IdRef="Assign_dt_Row">
+                                <Assign.To>
+                                  <OutArgument x:TypeArguments="sd:DataRow">
+                                    <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_dt_Row">dt_Row</CSharpReference>
+                                  </OutArgument>
+                                </Assign.To>
+                                <Assign.Value>
+                                  <InArgument x:TypeArguments="sd:DataRow">
+                                    <CSharpValue x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpValue`1_dt_Row">dt_Report.NewRow()</CSharpValue>
+                                  </InArgument>
+                                </Assign.Value>
+                              </Assign>
                               <ui:InvokeWorkflowFile ArgumentsVariable="{x:Null}" ContinueOnError="{x:Null}" DisplayName="Invoke Process workflow" sap:VirtualizedContainerService.HintSize="438,112" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_5" UnSafe="False" WorkflowFileName="Framework\Process.xaml">
                                 <ui:InvokeWorkflowFile.Arguments>
                                   <InArgument x:TypeArguments="ui:QueueItem" x:Key="in_TransactionItem">
@@ -502,6 +514,9 @@
                                   <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_Config">
                                     <CSharpValue x:TypeArguments="scg:Dictionary(x:String, x:Object)" sap2010:WorkflowViewState.IdRef="CSharpValue`1_22">Config</CSharpValue>
                                   </InArgument>
+                                  <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
+                                    <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row">dt_Row</CSharpReference>
+                                  </InOutArgument>
                                 </ui:InvokeWorkflowFile.Arguments>
                               </ui:InvokeWorkflowFile>
                               <TryCatch DisplayName="Try Catch Set Transaction Status (Success)" sap:VirtualizedContainerService.HintSize="438,339" sap2010:WorkflowViewState.IdRef="TryCatch_6">
@@ -543,6 +558,9 @@
                                       </InArgument>
                                       <InOutArgument x:TypeArguments="x:Int32" x:Key="io_ConsecutiveSystemExceptions">
                                         <CSharpReference x:TypeArguments="x:Int32" sap2010:WorkflowViewState.IdRef="CSharpReference`1_28">ConsecutiveSystemExceptions</CSharpReference>
+                                      </InOutArgument>
+                                      <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
+                                        <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row_success">dt_Row</CSharpReference>
                                       </InOutArgument>
                                     </ui:InvokeWorkflowFile.Arguments>
                                   </ui:InvokeWorkflowFile>
@@ -636,6 +654,9 @@
                                           <InOutArgument x:TypeArguments="x:Int32" x:Key="io_ConsecutiveSystemExceptions">
                                             <CSharpReference x:TypeArguments="x:Int32" sap2010:WorkflowViewState.IdRef="CSharpReference`1_29">ConsecutiveSystemExceptions</CSharpReference>
                                           </InOutArgument>
+                                          <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
+                                            <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row_bre">dt_Row</CSharpReference>
+                                          </InOutArgument>
                                         </ui:InvokeWorkflowFile.Arguments>
                                       </ui:InvokeWorkflowFile>
                                     </TryCatch.Try>
@@ -727,6 +748,9 @@
                                           </InArgument>
                                           <InOutArgument x:TypeArguments="x:Int32" x:Key="io_ConsecutiveSystemExceptions">
                                             <CSharpReference x:TypeArguments="x:Int32" sap2010:WorkflowViewState.IdRef="CSharpReference`1_30">ConsecutiveSystemExceptions</CSharpReference>
+                                          </InOutArgument>
+                                          <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
+                                            <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row_se">dt_Row</CSharpReference>
                                           </InOutArgument>
                                         </ui:InvokeWorkflowFile.Arguments>
                                       </ui:InvokeWorkflowFile>
