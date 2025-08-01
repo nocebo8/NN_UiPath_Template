@@ -1,0 +1,7 @@
+# UiPath generated artifacts
+*.screenshots
+*.local
+Exceptions_Screenshots/
+Data/Temp/
+Data/Output/
+*.json.backup
