@@ -11,6 +11,7 @@
     <x:Property sap2010:Annotation.AnnotationText="Used during transitions between states to represent exceptions other than business exceptions." Name="in_SystemException" Type="InArgument(s:Exception)" />
     <x:Property sap2010:Annotation.AnnotationText="Used to control the number of consecutive system exceptions." Name="io_ConsecutiveSystemExceptions" Type="InOutArgument(x:Int32)" />
     <x:Property Name="io_dt_Row" Type="InOutArgument(sd:DataRow)" sap2010:Annotation.AnnotationText="Current report row." />
+    <x:Property Name="io_Report" Type="InOutArgument(sd:DataTable)" sap2010:Annotation.AnnotationText="Transaction report." />
   </x:Members>
   <this:SetTransactionStatus.in_TransactionItem>
     <InArgument x:TypeArguments="ui:QueueItem">

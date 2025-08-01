@@ -402,10 +402,70 @@
                               </OutArgument>
                               <InOutArgument x:TypeArguments="sd:DataTable" x:Key="io_dt_TransactionData">
                                 <CSharpReference x:TypeArguments="sd:DataTable" sap2010:WorkflowViewState.IdRef="CSharpReference`1_32">dt_TransactionData</CSharpReference>
-                              </InOutArgument>
-                            </ui:InvokeWorkflowFile.Arguments>
-                          </ui:InvokeWorkflowFile>
-                        </TryCatch.Try>
+                                      </InOutArgument>
+                                    </ui:InvokeWorkflowFile.Arguments>
+                                  </ui:InvokeWorkflowFile>
+                                  <Assign DisplayName="Set end timestamp (BRE)" sap:VirtualizedContainerService.HintSize="438,60">
+                                    <Assign.To>
+                                      <OutArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Zakończono przetwarzanie"]</CSharpValue>
+                                      </OutArgument>
+                                    </Assign.To>
+                                    <Assign.Value>
+                                      <InArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">DateTime.Now</CSharpValue>
+                                      </InArgument>
+                                    </Assign.Value>
+                                  </Assign>
+                                  <Assign DisplayName="Compute duration (BRE)" sap:VirtualizedContainerService.HintSize="438,60">
+                                    <Assign.To>
+                                      <OutArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Czas przetwarzania [s]"]</CSharpValue>
+                                      </OutArgument>
+                                    </Assign.To>
+                                    <Assign.Value>
+                                      <InArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">(Convert.ToDateTime(dt_Row["Zakończono przetwarzanie"]) - Convert.ToDateTime(dt_Row["Rozpoczęto przetwarzanie"])).TotalSeconds</CSharpValue>
+                                      </InArgument>
+                                    </Assign.Value>
+                                  </Assign>
+                                  <Assign DisplayName="Set result (BRE)" sap:VirtualizedContainerService.HintSize="438,60">
+                                    <Assign.To>
+                                      <OutArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Wynik"]</CSharpValue>
+                                      </OutArgument>
+                                    </Assign.To>
+                                    <Assign.Value>
+                                      <InArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">"Business Exception"</CSharpValue>
+                                      </InArgument>
+                                    </Assign.Value>
+                                  </Assign>
+                                  <Assign DisplayName="Set exception details (BRE)" sap:VirtualizedContainerService.HintSize="438,60">
+                                    <Assign.To>
+                                      <OutArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Komunikat wyjątku"]</CSharpValue>
+                                      </OutArgument>
+                                    </Assign.To>
+                                    <Assign.Value>
+                                      <InArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">BusinessException.Message</CSharpValue>
+                                      </InArgument>
+                                    </Assign.Value>
+                                  </Assign>
+                                  <Assign DisplayName="Add row BRE" sap:VirtualizedContainerService.HintSize="438,60">
+                                    <Assign.To>
+                                      <OutArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Report</CSharpValue>
+                                      </OutArgument>
+                                    </Assign.To>
+                                    <Assign.Value>
+                                      <InArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Report.Rows.Add(dt_Row)</CSharpValue>
+                                      </InArgument>
+                                    </Assign.Value>
+                                  </Assign>
+                                </TryCatch.Try>
                         <TryCatch.Catches>
                           <Catch x:TypeArguments="s:Exception" sap:VirtualizedContainerService.HintSize="404,21" sap2010:WorkflowViewState.IdRef="Catch`1_2">
                             <sap:WorkflowViewStateService.ViewState>
@@ -506,6 +566,30 @@
                                   </InArgument>
                                 </Assign.Value>
                               </Assign>
+                              <Assign DisplayName="Set reference" sap:VirtualizedContainerService.HintSize="438,60">
+                                <Assign.To>
+                                  <OutArgument x:TypeArguments="x:Object">
+                                    <CSharpValue x:TypeArguments="x:Object">dt_Row["Nr Referencyjny"]</CSharpValue>
+                                  </OutArgument>
+                                </Assign.To>
+                                <Assign.Value>
+                                  <InArgument x:TypeArguments="x:Object">
+                                    <CSharpValue x:TypeArguments="x:Object">TransactionID</CSharpValue>
+                                  </InArgument>
+                                </Assign.Value>
+                              </Assign>
+                              <Assign DisplayName="Set start timestamp" sap:VirtualizedContainerService.HintSize="438,60">
+                                <Assign.To>
+                                  <OutArgument x:TypeArguments="x:Object">
+                                    <CSharpValue x:TypeArguments="x:Object">dt_Row["Rozpoczęto przetwarzanie"]</CSharpValue>
+                                  </OutArgument>
+                                </Assign.To>
+                                <Assign.Value>
+                                  <InArgument x:TypeArguments="x:Object">
+                                    <CSharpValue x:TypeArguments="x:Object">DateTime.Now</CSharpValue>
+                                  </InArgument>
+                                </Assign.Value>
+                              </Assign>
                               <ui:InvokeWorkflowFile ArgumentsVariable="{x:Null}" ContinueOnError="{x:Null}" DisplayName="Invoke Process workflow" sap:VirtualizedContainerService.HintSize="438,112" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_5" UnSafe="False" WorkflowFileName="Framework\Process.xaml">
                                 <ui:InvokeWorkflowFile.Arguments>
                                   <InArgument x:TypeArguments="ui:QueueItem" x:Key="in_TransactionItem">
@@ -562,8 +646,59 @@
                                       <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
                                         <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row_success">dt_Row</CSharpReference>
                                       </InOutArgument>
+                                      <InOutArgument x:TypeArguments="sd:DataTable" x:Key="io_Report">
+                                        <CSharpReference x:TypeArguments="sd:DataTable">dt_Report</CSharpReference>
+                                      </InOutArgument>
                                     </ui:InvokeWorkflowFile.Arguments>
                                   </ui:InvokeWorkflowFile>
+                                  <Assign DisplayName="Set end timestamp (Success)" sap:VirtualizedContainerService.HintSize="438,60">
+                                    <Assign.To>
+                                      <OutArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Zakończono przetwarzanie"]</CSharpValue>
+                                      </OutArgument>
+                                    </Assign.To>
+                                    <Assign.Value>
+                                      <InArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">DateTime.Now</CSharpValue>
+                                      </InArgument>
+                                    </Assign.Value>
+                                  </Assign>
+                                  <Assign DisplayName="Compute duration (Success)" sap:VirtualizedContainerService.HintSize="438,60">
+                                    <Assign.To>
+                                      <OutArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Czas przetwarzania [s]"]</CSharpValue>
+                                      </OutArgument>
+                                    </Assign.To>
+                                    <Assign.Value>
+                                      <InArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">(Convert.ToDateTime(dt_Row["Zakończono przetwarzanie"]) - Convert.ToDateTime(dt_Row["Rozpoczęto przetwarzanie"])).TotalSeconds</CSharpValue>
+                                      </InArgument>
+                                    </Assign.Value>
+                                  </Assign>
+                                  <Assign DisplayName="Set result (Success)" sap:VirtualizedContainerService.HintSize="438,60">
+                                    <Assign.To>
+                                      <OutArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Wynik"]</CSharpValue>
+                                      </OutArgument>
+                                    </Assign.To>
+                                    <Assign.Value>
+                                      <InArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">"Success"</CSharpValue>
+                                      </InArgument>
+                                    </Assign.Value>
+                                  </Assign>
+                                  <Assign DisplayName="Add row" sap:VirtualizedContainerService.HintSize="438,60">
+                                    <Assign.To>
+                                      <OutArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Report</CSharpValue>
+                                      </OutArgument>
+                                    </Assign.To>
+                                    <Assign.Value>
+                                      <InArgument x:TypeArguments="x:Object">
+                                        <CSharpValue x:TypeArguments="x:Object">dt_Report.Rows.Add(dt_Row)</CSharpValue>
+                                      </InArgument>
+                                    </Assign.Value>
+                                  </Assign>
                                 </TryCatch.Try>
                                 <TryCatch.Catches>
                                   <Catch x:TypeArguments="s:Exception" sap:VirtualizedContainerService.HintSize="404,21" sap2010:WorkflowViewState.IdRef="Catch`1_7">
@@ -657,8 +792,71 @@
                                           <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
                                             <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row_bre">dt_Row</CSharpReference>
                                           </InOutArgument>
+                                          <InOutArgument x:TypeArguments="sd:DataTable" x:Key="io_Report">
+                                            <CSharpReference x:TypeArguments="sd:DataTable">dt_Report</CSharpReference>
+                                          </InOutArgument>
                                         </ui:InvokeWorkflowFile.Arguments>
                                       </ui:InvokeWorkflowFile>
+                                      <Assign DisplayName="Set end timestamp (SE)" sap:VirtualizedContainerService.HintSize="438,60">
+                                        <Assign.To>
+                                          <OutArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">dt_Row["Zakończono przetwarzanie"]</CSharpValue>
+                                          </OutArgument>
+                                        </Assign.To>
+                                        <Assign.Value>
+                                          <InArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">DateTime.Now</CSharpValue>
+                                          </InArgument>
+                                        </Assign.Value>
+                                      </Assign>
+                                      <Assign DisplayName="Compute duration (SE)" sap:VirtualizedContainerService.HintSize="438,60">
+                                        <Assign.To>
+                                          <OutArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">dt_Row["Czas przetwarzania [s]"]</CSharpValue>
+                                          </OutArgument>
+                                        </Assign.To>
+                                        <Assign.Value>
+                                          <InArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">(Convert.ToDateTime(dt_Row["Zakończono przetwarzanie"]) - Convert.ToDateTime(dt_Row["Rozpoczęto przetwarzanie"])).TotalSeconds</CSharpValue>
+                                          </InArgument>
+                                        </Assign.Value>
+                                      </Assign>
+                                      <Assign DisplayName="Set result (SE)" sap:VirtualizedContainerService.HintSize="438,60">
+                                        <Assign.To>
+                                          <OutArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">dt_Row["Wynik"]</CSharpValue>
+                                          </OutArgument>
+                                        </Assign.To>
+                                        <Assign.Value>
+                                          <InArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">"System Exception"</CSharpValue>
+                                          </InArgument>
+                                        </Assign.Value>
+                                      </Assign>
+                                      <Assign DisplayName="Set exception details (SE)" sap:VirtualizedContainerService.HintSize="438,60">
+                                        <Assign.To>
+                                          <OutArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">dt_Row["Komunikat wyjątku"]</CSharpValue>
+                                          </OutArgument>
+                                        </Assign.To>
+                                        <Assign.Value>
+                                          <InArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">SystemException.Message</CSharpValue>
+                                          </InArgument>
+                                        </Assign.Value>
+                                      </Assign>
+                                      <Assign DisplayName="Add row SE" sap:VirtualizedContainerService.HintSize="438,60">
+                                        <Assign.To>
+                                          <OutArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">dt_Report</CSharpValue>
+                                          </OutArgument>
+                                        </Assign.To>
+                                        <Assign.Value>
+                                          <InArgument x:TypeArguments="x:Object">
+                                            <CSharpValue x:TypeArguments="x:Object">dt_Report.Rows.Add(dt_Row)</CSharpValue>
+                                          </InArgument>
+                                        </Assign.Value>
+                                      </Assign>
                                     </TryCatch.Try>
                                     <TryCatch.Catches>
                                       <Catch x:TypeArguments="s:Exception" sap:VirtualizedContainerService.HintSize="404,21" sap2010:WorkflowViewState.IdRef="Catch`1_8">
@@ -751,6 +949,9 @@
                                           </InOutArgument>
                                           <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
                                             <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row_se">dt_Row</CSharpReference>
+                                          </InOutArgument>
+                                          <InOutArgument x:TypeArguments="sd:DataTable" x:Key="io_Report">
+                                            <CSharpReference x:TypeArguments="sd:DataTable">dt_Report</CSharpReference>
                                           </InOutArgument>
                                         </ui:InvokeWorkflowFile.Arguments>
                                       </ui:InvokeWorkflowFile>
