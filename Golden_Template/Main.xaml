@@ -140,6 +140,26 @@
                         </InArgument>
                       </ui:InvokeWorkflowFile.Arguments>
                     </ui:InvokeWorkflowFile>
+                    <Sequence DisplayName="Initialize report DataTable" sap:VirtualizedContainerService.HintSize="484,200" sap2010:WorkflowViewState.IdRef="Sequence_10">
+                      <sap:WorkflowViewStateService.ViewState>
+                        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                          <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                          <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                        </scg:Dictionary>
+                      </sap:WorkflowViewStateService.ViewState>
+                      <Assign DisplayName="Create dt_Report" sap:VirtualizedContainerService.HintSize="262,60" sap2010:WorkflowViewState.IdRef="Assign_10">
+                        <Assign.To>
+                          <OutArgument x:TypeArguments="sd:DataTable">
+                            <CSharpReference x:TypeArguments="sd:DataTable">dt_Report</CSharpReference>
+                          </OutArgument>
+                        </Assign.To>
+                        <Assign.Value>
+                          <InArgument x:TypeArguments="sd:DataTable">
+                            <CSharpValue x:TypeArguments="sd:DataTable">new DataTable { Columns = { "Nr Referencyjny", "Rozpoczęto przetwarzanie", "Zakończono przetwarzanie", "Czas przetwarzania [s]", "Wynik", "Typ wyjątku", "Komunikat wyjątku" } }</CSharpValue>
+                          </InArgument>
+                        </Assign.Value>
+                      </Assign>
+                    </Sequence>
                     <If sap2010:Annotation.AnnotationText="Overwrite queue name from in configuration file in case the argument in_OrchestratorQueueName is specified.&#xA;This provides backward compatibility with &lt; 2018.3." DisplayName="If in_OrchestratorQueueName is specified" sap:VirtualizedContainerService.HintSize="484,294" sap2010:WorkflowViewState.IdRef="If_2">
                       <If.Condition>
                         <InArgument x:TypeArguments="x:Boolean">
@@ -969,8 +989,10 @@
       <Variable x:TypeArguments="x:String" sap2010:Annotation.AnnotationText="Optionally used to include additional information about the transaction item." Name="TransactionField2" />
       <Variable x:TypeArguments="x:String" sap2010:Annotation.AnnotationText="Optionally used to include additional information about the transaction item." Name="TransactionField1" />
       <Variable x:TypeArguments="x:String" sap2010:Annotation.AnnotationText="Transaction ID used for information and logging purposes. Ideally, the ID should be unique for each transaction. " Name="TransactionID" />
-      <Variable x:TypeArguments="sd:DataTable" sap2010:Annotation.AnnotationText="Used in case transactions are stored in a DataTable, for example, after being retrieved from a spreadsheet." Name="dt_TransactionData" />
-      <Variable x:TypeArguments="x:Int32" sap2010:Annotation.AnnotationText="Used to control the number of consecutive system exceptions." Default="0" Name="ConsecutiveSystemExceptions" />
-    </StateMachine.Variables>
+        <Variable x:TypeArguments="sd:DataTable" sap2010:Annotation.AnnotationText="Used in case transactions are stored in a DataTable, for example, after being retrieved from a spreadsheet." Name="dt_TransactionData" />
+        <Variable x:TypeArguments="sd:DataTable" Name="dt_Report" />
+        <Variable x:TypeArguments="sd:DataRow" Name="dt_Row" />
+        <Variable x:TypeArguments="x:Int32" sap2010:Annotation.AnnotationText="Used to control the number of consecutive system exceptions." Default="0" Name="ConsecutiveSystemExceptions" />
+      </StateMachine.Variables>
   </StateMachine>
 </Activity>
