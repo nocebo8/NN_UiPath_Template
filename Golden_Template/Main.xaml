@@ -1139,6 +1139,25 @@
                             </If>
                           </TryCatch.Finally>
                         </TryCatch>
+                        <Sequence DisplayName="Write report to CSV" sap:VirtualizedContainerService.HintSize="484,200" sap2010:WorkflowViewState.IdRef="Sequence_WriteReport">
+                          <sap:WorkflowViewStateService.ViewState>
+                            <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                              <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                            </scg:Dictionary>
+                          </sap:WorkflowViewStateService.ViewState>
+                          <ui:WriteCsvFile DisplayName="Write CSV dt_Report" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="WriteCsvFile_1">
+                            <ui:WriteCsvFile.DataTable>
+                              <InArgument x:TypeArguments="sd:DataTable">
+                                <CSharpValue x:TypeArguments="sd:DataTable">dt_Report</CSharpValue>
+                              </InArgument>
+                            </ui:WriteCsvFile.DataTable>
+                            <ui:WriteCsvFile.FilePath>
+                              <InArgument x:TypeArguments="x:String">
+                                <CSharpValue x:TypeArguments="x:String">System.IO.Path.Combine(System.IO.Directory.CreateDirectory(Config["ReportFolder"].ToString()).FullName, "Raport_" + DateTime.Now.ToString("dd_MM_yyyy HHmmss") + ".csv")</CSharpValue>
+                              </InArgument>
+                            </ui:WriteCsvFile.FilePath>
+                          </ui:WriteCsvFile>
+                        </Sequence>
                       </State.Entry>
                       <sap:WorkflowViewStateService.ViewState>
                         <scg:Dictionary x:TypeArguments="x:String, x:Object">
