@@ -20,7 +20,6 @@ Use it as a starting point for building robust attended or unattended automation
 - `Golden_Template/Main.xaml` – main workflow that drives the state machine
 - `Golden_Template/Framework/` – core framework workflows such as `InitAllSettings.xaml`
 - `Golden_Template/Data/` – contains `Config.xlsx` plus input and output folders
-- `Golden_Template/Tests/` – sample test cases for individual workflows
 - `Golden_Template/Documentation/` – PDF documentation of the framework
 
 ## Basic Usage
@@ -28,9 +27,4 @@ Use it as a starting point for building robust attended or unattended automation
 1. Update the configuration file and any application-specific workflows in the `Framework` folder.
 2. Press **Run** in UiPath Studio to execute `Main.xaml`.
 3. Inspect logs and screenshots (saved in `Exceptions_Screenshots/`) if exceptions occur.
-
-## Running Tests
-
-Open the `Tests` folder in UiPath Studio and run the XAML files to verify each part
-of the framework. Test results appear in the Test Explorer pane.
 
