@@ -47,6 +47,17 @@
         <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
       </scg:Dictionary>
     </sap:WorkflowViewStateService.ViewState>
+    <Sequence.Variables>
+      <Variable x:TypeArguments="x:String[]" Name="ProcessNames">
+        <Variable.Default>
+          <x:Array Type="{x:Type x:String}">
+            <x:String>proc1</x:String>
+            <x:String>proc2</x:String>
+          </x:Array>
+        </Variable.Default>
+      </Variable>
+      <Variable x:TypeArguments="scg:IEnumerable(x:String)" Name="terminatedProcesses" />
+    </Sequence.Variables>
     <ui:LogMessage DisplayName="Log message (Kill processes)" sap:VirtualizedContainerService.HintSize="333.6,92.8" sap2010:WorkflowViewState.IdRef="LogMessage_1">
       <ui:LogMessage.Level>
         <InArgument x:TypeArguments="ui:LogLevel">
@@ -59,5 +70,54 @@
         </InArgument>
       </ui:LogMessage.Message>
     </ui:LogMessage>
+    <ui:InvokePowerShell DisplayName="Invoke Power Shell" IsScript="True" sap:VirtualizedContainerService.HintSize="333.6,176.8" sap2010:WorkflowViewState.IdRef="InvokePowerShell_1">
+      <ui:InvokePowerShell.Parameters>
+        <InArgument x:TypeArguments="x:Object" x:Key="names">
+          <CSharpValue x:TypeArguments="x:Object">ProcessNames</CSharpValue>
+        </InArgument>
+      </ui:InvokePowerShell.Parameters>
+      <ui:InvokePowerShell.CommandText>
+        <InArgument x:TypeArguments="x:String"><![CDATA[
+param([string[]]$names)
+$terminated = @()
+Get-WmiObject Win32_Process |
+    Where-Object { $names -contains $_.Name -and $_.GetOwner().User -eq $env:USERNAME } |
+    ForEach-Object {
+        Stop-Process -Id $_.ProcessId -Force
+        $terminated += $_.Name
+    }
+$terminated
+        ]]></InArgument>
+      </ui:InvokePowerShell.CommandText>
+      <ui:InvokePowerShell.Output>
+        <OutArgument x:TypeArguments="scg:IEnumerable(x:String)">terminatedProcesses</OutArgument>
+      </ui:InvokePowerShell.Output>
+    </ui:InvokePowerShell>
+    <ui:ForEach x:TypeArguments="x:String" DisplayName="For each terminated process" sap:VirtualizedContainerService.HintSize="333.6,213.6" sap2010:WorkflowViewState.IdRef="ForEach`1_1">
+      <ui:ForEach.Body>
+        <ActivityAction x:TypeArguments="x:String">
+          <ActivityAction.Argument>
+            <DelegateInArgument x:TypeArguments="x:String" Name="currentItem" />
+          </ActivityAction.Argument>
+          <ui:LogMessage DisplayName="Log message (terminated process)" sap:VirtualizedContainerService.HintSize="301.6,92.8" sap2010:WorkflowViewState.IdRef="LogMessage_2">
+            <ui:LogMessage.Level>
+              <InArgument x:TypeArguments="ui:LogLevel">
+                <CSharpValue x:TypeArguments="ui:LogLevel" sap2010:WorkflowViewState.IdRef="CSharpValue`1_3">LogLevel.Trace</CSharpValue>
+              </InArgument>
+            </ui:LogMessage.Level>
+            <ui:LogMessage.Message>
+              <InArgument x:TypeArguments="x:Object">
+                <CSharpValue x:TypeArguments="x:Object" sap2010:WorkflowViewState.IdRef="CSharpValue`1_4">$"Terminated process: {currentItem}"</CSharpValue>
+              </InArgument>
+            </ui:LogMessage.Message>
+          </ui:LogMessage>
+        </ActivityAction>
+      </ui:ForEach.Body>
+      <ui:ForEach.Values>
+        <InArgument x:TypeArguments="scg:IEnumerable(x:String)">
+          <CSharpValue x:TypeArguments="scg:IEnumerable(x:String)" sap2010:WorkflowViewState.IdRef="CSharpValue`1_5">terminatedProcesses</CSharpValue>
+        </InArgument>
+      </ui:ForEach.Values>
+    </ui:ForEach>
   </Sequence>
 </Activity>
