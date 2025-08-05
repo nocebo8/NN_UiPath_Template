@@ -1122,45 +1122,47 @@
                               </ActivityAction>
                             </Catch>
                           </TryCatch.Catches>
-                          <TryCatch.Finally>
-                            <If DisplayName="If SystemException IsNot Nothing" sap:VirtualizedContainerService.HintSize="484,237" sap2010:WorkflowViewState.IdRef="If_5">
-                              <If.Condition>
-                                <InArgument x:TypeArguments="x:Boolean">
-                                  <CSharpValue x:TypeArguments="x:Boolean" sap2010:WorkflowViewState.IdRef="CSharpValue`1_75">SystemException != null &amp;&amp; Convert.ToBoolean(Config["ShouldMarkJobAsFaulted"].ToString())</CSharpValue>
-                                </InArgument>
-                              </If.Condition>
-                              <If.Then>
-                                <TerminateWorkflow DisplayName="Terminate Main Workflow" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="TerminateWorkflow_1">
-                                  <TerminateWorkflow.Exception>
-                                    <InArgument x:TypeArguments="s:Exception">
-                                      <CSharpValue x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="CSharpValue`1_76">SystemException</CSharpValue>
+                            <TryCatch.Finally>
+                              <Sequence>
+                                <Sequence DisplayName="Write report to CSV" sap:VirtualizedContainerService.HintSize="484,200" sap2010:WorkflowViewState.IdRef="Sequence_WriteReport">
+                                  <sap:WorkflowViewStateService.ViewState>
+                                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                    </scg:Dictionary>
+                                  </sap:WorkflowViewStateService.ViewState>
+                                  <ui:WriteCsvFile DisplayName="Write CSV dt_Report" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="WriteCsvFile_1">
+                                    <ui:WriteCsvFile.DataTable>
+                                      <InArgument x:TypeArguments="sd:DataTable">
+                                        <CSharpValue x:TypeArguments="sd:DataTable">dt_Report</CSharpValue>
+                                      </InArgument>
+                                    </ui:WriteCsvFile.DataTable>
+                                    <ui:WriteCsvFile.FilePath>
+                                      <InArgument x:TypeArguments="x:String">
+                                        <CSharpValue x:TypeArguments="x:String">System.IO.Path.Combine(System.IO.Directory.CreateDirectory(Config["ReportFolder"].ToString()).FullName, "Raport_" + DateTime.Now.ToString("dd_MM_yyyy HHmmss") + ".csv")</CSharpValue>
+                                      </InArgument>
+                                    </ui:WriteCsvFile.FilePath>
+                                  </ui:WriteCsvFile>
+                                </Sequence>
+                                <If DisplayName="If SystemException Is Not Nothing" sap:VirtualizedContainerService.HintSize="484,237" sap2010:WorkflowViewState.IdRef="If_5">
+                                  <If.Condition>
+                                    <InArgument x:TypeArguments="x:Boolean">
+                                      <CSharpValue x:TypeArguments="x:Boolean" sap2010:WorkflowViewState.IdRef="CSharpValue`1_75">SystemException != null &amp;&amp; Convert.ToBoolean(Config["ShouldMarkJobAsFaulted"].ToString())</CSharpValue>
                                     </InArgument>
-                                  </TerminateWorkflow.Exception>
-                                </TerminateWorkflow>
-                              </If.Then>
-                            </If>
-                          </TryCatch.Finally>
-                        </TryCatch>
-                        <Sequence DisplayName="Write report to CSV" sap:VirtualizedContainerService.HintSize="484,200" sap2010:WorkflowViewState.IdRef="Sequence_WriteReport">
-                          <sap:WorkflowViewStateService.ViewState>
-                            <scg:Dictionary x:TypeArguments="x:String, x:Object">
-                              <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-                            </scg:Dictionary>
-                          </sap:WorkflowViewStateService.ViewState>
-                          <ui:WriteCsvFile DisplayName="Write CSV dt_Report" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="WriteCsvFile_1">
-                            <ui:WriteCsvFile.DataTable>
-                              <InArgument x:TypeArguments="sd:DataTable">
-                                <CSharpValue x:TypeArguments="sd:DataTable">dt_Report</CSharpValue>
-                              </InArgument>
-                            </ui:WriteCsvFile.DataTable>
-                            <ui:WriteCsvFile.FilePath>
-                              <InArgument x:TypeArguments="x:String">
-                                <CSharpValue x:TypeArguments="x:String">System.IO.Path.Combine(System.IO.Directory.CreateDirectory(Config["ReportFolder"].ToString()).FullName, "Raport_" + DateTime.Now.ToString("dd_MM_yyyy HHmmss") + ".csv")</CSharpValue>
-                              </InArgument>
-                            </ui:WriteCsvFile.FilePath>
-                          </ui:WriteCsvFile>
-                        </Sequence>
-                      </State.Entry>
+                                  </If.Condition>
+                                  <If.Then>
+                                    <TerminateWorkflow DisplayName="Terminate Main Workflow" sap:VirtualizedContainerService.HintSize="200,22" sap2010:WorkflowViewState.IdRef="TerminateWorkflow_1">
+                                      <TerminateWorkflow.Exception>
+                                        <InArgument x:TypeArguments="s:Exception">
+                                          <CSharpValue x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="CSharpValue`1_76">SystemException</CSharpValue>
+                                        </InArgument>
+                                      </TerminateWorkflow.Exception>
+                                    </TerminateWorkflow>
+                                  </If.Then>
+                                </If>
+                              </Sequence>
+                            </TryCatch.Finally>
+                          </TryCatch>
+                        </State.Entry>
                       <sap:WorkflowViewStateService.ViewState>
                         <scg:Dictionary x:TypeArguments="x:String, x:Object">
                           <av:Point x:Key="ShapeLocation">620,40</av:Point>
