@@ -5,3 +5,8 @@ Exceptions_Screenshots/
 Data/Temp/
 Data/Output/
 *.json.backup
+
+# Golden Template generated artifacts
+Golden_Template/Exceptions_Screenshots/
+Golden_Template/Data/Temp/
+Golden_Template/Data/Output/
