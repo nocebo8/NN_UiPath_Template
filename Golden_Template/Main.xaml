@@ -409,7 +409,7 @@
                                   <Assign DisplayName="Set end timestamp (BRE)" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
                                       <OutArgument x:TypeArguments="x:Object">
-                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Zakończono przetwarzanie"]</CSharpValue>
+                                        <CSharpReference x:TypeArguments="x:Object">dt_Row["Zakończono przetwarzanie"]</CSharpReference>
                                       </OutArgument>
                                     </Assign.To>
                                     <Assign.Value>
@@ -421,7 +421,7 @@
                                   <Assign DisplayName="Compute duration (BRE)" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
                                       <OutArgument x:TypeArguments="x:Object">
-                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Czas przetwarzania [s]"]</CSharpValue>
+                                        <CSharpReference x:TypeArguments="x:Object">dt_Row["Czas przetwarzania [s]"]</CSharpReference>
                                       </OutArgument>
                                     </Assign.To>
                                     <Assign.Value>
@@ -433,7 +433,7 @@
                                   <Assign DisplayName="Set result (BRE)" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
                                       <OutArgument x:TypeArguments="x:Object">
-                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Wynik"]</CSharpValue>
+                                        <CSharpReference x:TypeArguments="x:Object">dt_Row["Wynik"]</CSharpReference>
                                       </OutArgument>
                                     </Assign.To>
                                     <Assign.Value>
@@ -445,7 +445,7 @@
                                   <Assign DisplayName="Set exception details (BRE)" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
                                       <OutArgument x:TypeArguments="x:Object">
-                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Komunikat wyjątku"]</CSharpValue>
+                                        <CSharpReference x:TypeArguments="x:Object">dt_Row["Komunikat wyjątku"]</CSharpReference>
                                       </OutArgument>
                                     </Assign.To>
                                     <Assign.Value>
@@ -457,7 +457,7 @@
                                   <Assign DisplayName="Add row BRE" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
                                       <OutArgument x:TypeArguments="x:Object">
-                                        <CSharpValue x:TypeArguments="x:Object">dt_Report</CSharpValue>
+                                        <CSharpReference x:TypeArguments="x:Object">dt_Report</CSharpReference>
                                       </OutArgument>
                                     </Assign.To>
                                     <Assign.Value>
@@ -571,7 +571,7 @@
                               <Assign DisplayName="Set reference" sap:VirtualizedContainerService.HintSize="438,60">
                                 <Assign.To>
                                   <OutArgument x:TypeArguments="x:Object">
-                                    <CSharpValue x:TypeArguments="x:Object">dt_Row["Nr Referencyjny"]</CSharpValue>
+                                    <CSharpReference x:TypeArguments="x:Object">dt_Row["Nr Referencyjny"]</CSharpReference>
                                   </OutArgument>
                                 </Assign.To>
                                 <Assign.Value>
@@ -583,7 +583,7 @@
                               <Assign DisplayName="Set start timestamp" sap:VirtualizedContainerService.HintSize="438,60">
                                 <Assign.To>
                                   <OutArgument x:TypeArguments="x:Object">
-                                    <CSharpValue x:TypeArguments="x:Object">dt_Row["Rozpoczęto przetwarzanie"]</CSharpValue>
+                                    <CSharpReference x:TypeArguments="x:Object">dt_Row["Rozpoczęto przetwarzanie"]</CSharpReference>
                                   </OutArgument>
                                 </Assign.To>
                                 <Assign.Value>
@@ -656,7 +656,7 @@
                                   <Assign DisplayName="Set end timestamp (Success)" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
                                       <OutArgument x:TypeArguments="x:Object">
-                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Zakończono przetwarzanie"]</CSharpValue>
+                                        <CSharpReference x:TypeArguments="x:Object">dt_Row["Zakończono przetwarzanie"]</CSharpReference>
                                       </OutArgument>
                                     </Assign.To>
                                     <Assign.Value>
@@ -668,7 +668,7 @@
                                   <Assign DisplayName="Compute duration (Success)" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
                                       <OutArgument x:TypeArguments="x:Object">
-                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Czas przetwarzania [s]"]</CSharpValue>
+                                        <CSharpReference x:TypeArguments="x:Object">dt_Row["Czas przetwarzania [s]"]</CSharpReference>
                                       </OutArgument>
                                     </Assign.To>
                                     <Assign.Value>
@@ -680,7 +680,7 @@
                                   <Assign DisplayName="Set result (Success)" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
                                       <OutArgument x:TypeArguments="x:Object">
-                                        <CSharpValue x:TypeArguments="x:Object">dt_Row["Wynik"]</CSharpValue>
+                                        <CSharpReference x:TypeArguments="x:Object">dt_Row["Wynik"]</CSharpReference>
                                       </OutArgument>
                                     </Assign.To>
                                     <Assign.Value>
@@ -692,7 +692,7 @@
                                   <Assign DisplayName="Add row" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
                                       <OutArgument x:TypeArguments="x:Object">
-                                        <CSharpValue x:TypeArguments="x:Object">dt_Report</CSharpValue>
+                                        <CSharpReference x:TypeArguments="x:Object">dt_Report</CSharpReference>
                                       </OutArgument>
                                     </Assign.To>
                                     <Assign.Value>
@@ -802,7 +802,7 @@
                                       <Assign DisplayName="Set end timestamp (SE)" sap:VirtualizedContainerService.HintSize="438,60">
                                         <Assign.To>
                                           <OutArgument x:TypeArguments="x:Object">
-                                            <CSharpValue x:TypeArguments="x:Object">dt_Row["Zakończono przetwarzanie"]</CSharpValue>
+                                            <CSharpReference x:TypeArguments="x:Object">dt_Row["Zakończono przetwarzanie"]</CSharpReference>
                                           </OutArgument>
                                         </Assign.To>
                                         <Assign.Value>
@@ -814,7 +814,7 @@
                                       <Assign DisplayName="Compute duration (SE)" sap:VirtualizedContainerService.HintSize="438,60">
                                         <Assign.To>
                                           <OutArgument x:TypeArguments="x:Object">
-                                            <CSharpValue x:TypeArguments="x:Object">dt_Row["Czas przetwarzania [s]"]</CSharpValue>
+                                            <CSharpReference x:TypeArguments="x:Object">dt_Row["Czas przetwarzania [s]"]</CSharpReference>
                                           </OutArgument>
                                         </Assign.To>
                                         <Assign.Value>
@@ -826,7 +826,7 @@
                                       <Assign DisplayName="Set result (SE)" sap:VirtualizedContainerService.HintSize="438,60">
                                         <Assign.To>
                                           <OutArgument x:TypeArguments="x:Object">
-                                            <CSharpValue x:TypeArguments="x:Object">dt_Row["Wynik"]</CSharpValue>
+                                            <CSharpReference x:TypeArguments="x:Object">dt_Row["Wynik"]</CSharpReference>
                                           </OutArgument>
                                         </Assign.To>
                                         <Assign.Value>
@@ -838,7 +838,7 @@
                                       <Assign DisplayName="Set exception details (SE)" sap:VirtualizedContainerService.HintSize="438,60">
                                         <Assign.To>
                                           <OutArgument x:TypeArguments="x:Object">
-                                            <CSharpValue x:TypeArguments="x:Object">dt_Row["Komunikat wyjątku"]</CSharpValue>
+                                            <CSharpReference x:TypeArguments="x:Object">dt_Row["Komunikat wyjątku"]</CSharpReference>
                                           </OutArgument>
                                         </Assign.To>
                                         <Assign.Value>
@@ -850,7 +850,7 @@
                                       <Assign DisplayName="Add row SE" sap:VirtualizedContainerService.HintSize="438,60">
                                         <Assign.To>
                                           <OutArgument x:TypeArguments="x:Object">
-                                            <CSharpValue x:TypeArguments="x:Object">dt_Report</CSharpValue>
+                                            <CSharpReference x:TypeArguments="x:Object">dt_Report</CSharpReference>
                                           </OutArgument>
                                         </Assign.To>
                                         <Assign.Value>
