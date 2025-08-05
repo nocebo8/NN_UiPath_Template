@@ -11,11 +11,6 @@
     <x:Property sap2010:Annotation.AnnotationText="Used during transitions between states to represent exceptions other than business exceptions." Name="in_SystemException" Type="InArgument(s:Exception)" />
     <x:Property sap2010:Annotation.AnnotationText="Used to control the number of consecutive system exceptions." Name="io_ConsecutiveSystemExceptions" Type="InOutArgument(x:Int32)" />
   </x:Members>
-  <this:SetTransactionStatus.in_TransactionItem>
-    <InArgument x:TypeArguments="ui:QueueItem">
-      <CSharpValue x:TypeArguments="ui:QueueItem" sap2010:WorkflowViewState.IdRef="CSharpValue`1_1">null</CSharpValue>
-    </InArgument>
-  </this:SetTransactionStatus.in_TransactionItem>
   <sap2010:ExpressionActivityEditor.ExpressionActivityEditor>C#</sap2010:ExpressionActivityEditor.ExpressionActivityEditor>
   <sap:VirtualizedContainerService.HintSize>712,1304.6666666666667</sap:VirtualizedContainerService.HintSize>
   <sap2010:WorkflowViewState.IdRef>ActivityBuilder_1</sap2010:WorkflowViewState.IdRef>
