@@ -380,6 +380,7 @@
                     <If.Else>
                       <TryCatch DisplayName="Try Catch Get transaction item" sap:VirtualizedContainerService.HintSize="438,339" sap2010:WorkflowViewState.IdRef="TryCatch_2">
                         <TryCatch.Try>
+                          <Sequence DisplayName="Get transaction data activities" sap:VirtualizedContainerService.HintSize="438,339" sap2010:WorkflowViewState.IdRef="Sequence_11">
                           <ui:InvokeWorkflowFile ArgumentsVariable="{x:Null}" ContinueOnError="{x:Null}" DisplayName="Invoke GetTransactionData workflow" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_4" UnSafe="False" WorkflowFileName="Framework\GetTransactionData.xaml">
                             <ui:InvokeWorkflowFile.Arguments>
                               <InArgument x:TypeArguments="x:Int32" x:Key="in_TransactionNumber">
@@ -465,7 +466,8 @@
                                       </InArgument>
                                     </Assign.Value>
                                   </Assign>
-                                </TryCatch.Try>
+                          </Sequence>
+                        </TryCatch.Try>
                         <TryCatch.Catches>
                           <Catch x:TypeArguments="s:Exception" sap:VirtualizedContainerService.HintSize="404,21" sap2010:WorkflowViewState.IdRef="Catch`1_2">
                             <sap:WorkflowViewStateService.ViewState>
