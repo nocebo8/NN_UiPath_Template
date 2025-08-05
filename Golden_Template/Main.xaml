@@ -603,7 +603,7 @@
                                   <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
                                     <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row">dt_Row</CSharpReference>
                                   </InOutArgument>
-                                </ui:InvokeWorkflowFile.Arguments>
+                                  </ui:InvokeWorkflowFile.Arguments>
                               </ui:InvokeWorkflowFile>
                               <TryCatch DisplayName="Try Catch Set Transaction Status (Success)" sap:VirtualizedContainerService.HintSize="438,339" sap2010:WorkflowViewState.IdRef="TryCatch_6">
                                 <sap:WorkflowViewStateService.ViewState>
@@ -645,13 +645,7 @@
                                       <InOutArgument x:TypeArguments="x:Int32" x:Key="io_ConsecutiveSystemExceptions">
                                         <CSharpReference x:TypeArguments="x:Int32" sap2010:WorkflowViewState.IdRef="CSharpReference`1_28">ConsecutiveSystemExceptions</CSharpReference>
                                       </InOutArgument>
-                                      <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
-                                        <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row_success">dt_Row</CSharpReference>
-                                      </InOutArgument>
-                                      <InOutArgument x:TypeArguments="sd:DataTable" x:Key="io_Report">
-                                        <CSharpReference x:TypeArguments="sd:DataTable">dt_Report</CSharpReference>
-                                      </InOutArgument>
-                                    </ui:InvokeWorkflowFile.Arguments>
+                                      </ui:InvokeWorkflowFile.Arguments>
                                   </ui:InvokeWorkflowFile>
                                   <Assign DisplayName="Set end timestamp (Success)" sap:VirtualizedContainerService.HintSize="438,60">
                                     <Assign.To>
@@ -791,13 +785,7 @@
                                           <InOutArgument x:TypeArguments="x:Int32" x:Key="io_ConsecutiveSystemExceptions">
                                             <CSharpReference x:TypeArguments="x:Int32" sap2010:WorkflowViewState.IdRef="CSharpReference`1_29">ConsecutiveSystemExceptions</CSharpReference>
                                           </InOutArgument>
-                                          <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
-                                            <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row_bre">dt_Row</CSharpReference>
-                                          </InOutArgument>
-                                          <InOutArgument x:TypeArguments="sd:DataTable" x:Key="io_Report">
-                                            <CSharpReference x:TypeArguments="sd:DataTable">dt_Report</CSharpReference>
-                                          </InOutArgument>
-                                        </ui:InvokeWorkflowFile.Arguments>
+                                          </ui:InvokeWorkflowFile.Arguments>
                                       </ui:InvokeWorkflowFile>
                                       <Assign DisplayName="Set end timestamp (SE)" sap:VirtualizedContainerService.HintSize="438,60">
                                         <Assign.To>
@@ -949,13 +937,7 @@
                                           <InOutArgument x:TypeArguments="x:Int32" x:Key="io_ConsecutiveSystemExceptions">
                                             <CSharpReference x:TypeArguments="x:Int32" sap2010:WorkflowViewState.IdRef="CSharpReference`1_30">ConsecutiveSystemExceptions</CSharpReference>
                                           </InOutArgument>
-                                          <InOutArgument x:TypeArguments="sd:DataRow" x:Key="io_dt_Row">
-                                            <CSharpReference x:TypeArguments="sd:DataRow" sap2010:WorkflowViewState.IdRef="CSharpReference`1_io_dt_Row_se">dt_Row</CSharpReference>
-                                          </InOutArgument>
-                                          <InOutArgument x:TypeArguments="sd:DataTable" x:Key="io_Report">
-                                            <CSharpReference x:TypeArguments="sd:DataTable">dt_Report</CSharpReference>
-                                          </InOutArgument>
-                                        </ui:InvokeWorkflowFile.Arguments>
+                                          </ui:InvokeWorkflowFile.Arguments>
                                       </ui:InvokeWorkflowFile>
                                     </TryCatch.Try>
                                     <TryCatch.Catches>
