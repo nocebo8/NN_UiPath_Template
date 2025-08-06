@@ -6,7 +6,6 @@
   "dependencies": {
     "UiPath.Excel.Activities": "[2.24.4]",
     "UiPath.System.Activities": "[24.10.7]",
-    "UiPath.Testing.Activities": "[24.10.4]",
     "UiPath.UIAutomation.Activities": "[24.10.11]"
   },
   "webServices": [],
