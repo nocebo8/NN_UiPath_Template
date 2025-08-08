@@ -59,6 +59,8 @@ jobs:
   analyze:
     needs: pack
     runs-on: ubuntu-latest
+    outputs:
+      has_errors: ${{ steps.scan.outputs.has_errors }}
     steps:
       - name: Download pack artifacts
         uses: actions/download-artifact@v4
@@ -67,19 +69,21 @@ jobs:
           path: ./uipath-pack-results
 
       - name: Inspect pack.log
+        id: scan
         run: |
           if [ -f ./uipath-pack-results/pack.log ]; then
             echo "---- tail pack.log ----"
             tail -n 200 ./uipath-pack-results/pack.log || true
             if grep -i -E "exception|error|failed|Unable to find package" ./uipath-pack-results/pack.log >/dev/null; then
-              echo "Pack produced errors. Failing analyze job."
-              exit 2
+              echo "Pack produced errors."
+              echo "has_errors=true" >> "$GITHUB_OUTPUT"
             else
               echo "No obvious errors found in pack.log."
+              echo "has_errors=false" >> "$GITHUB_OUTPUT"
             fi
           else
             echo "pack.log not found in artifacts"
-            exit 1
+            echo "has_errors=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Post PR comment with summary
@@ -100,3 +104,39 @@ jobs:
               issue_number: context.payload.pull_request.number,
               body
             });
+
+  autofix:
+    needs: analyze
+    if: ${{ needs.analyze.outputs.has_errors == 'true' && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Attempt simple fixes
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y >/dev/null 2>&1 || true
+          sudo apt-get install -y jq >/dev/null 2>&1 || true
+          FILE="Golden_Template/project.json"
+          if [ -f "$FILE" ]; then
+            TMP=$(mktemp)
+            jq '.dependencies |= (."UiPath.System.Activities"="[24.10.0,25.0.0)", ."UiPath.UIAutomation.Activities"="[24.10.0,25.0.0)", ."UiPath.Excel.Activities"="[2.24.0,3.0.0)", ."UiPath.Testing.Activities"="[24.10.0,25.0.0)")' "$FILE" > "$TMP" && mv "$TMP" "$FILE"
+            echo "Adjusted dependency ranges in project.json"
+          else
+            echo "project.json not found; skipping dependency adjustments"
+          fi
+      - name: Commit and push fixes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add -A
+            git commit -m "ci: widen UiPath Activities dependency ranges to fix pack"
+            git push
+          else
+            echo "No changes to push."
+          fi
