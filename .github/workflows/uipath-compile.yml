@@ -19,7 +19,7 @@ jobs:
           curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
       - name: Configure UiPath NuGet feed (authenticated)
-        if: ${{ secrets.UIPATH_FEED_PAT != '' }}
+        if: ${{ secrets.UIPATH_FEED_PAT && secrets.UIPATH_FEED_PAT != '' }}
         shell: pwsh
         env:
           UIPATH_FEED_PAT: ${{ secrets.UIPATH_FEED_PAT }}
@@ -30,9 +30,15 @@ jobs:
           dotnet --info | Out-Null
           dotnet nuget remove source UiPath-Official 2>$null | Out-Null
           dotnet nuget add source $feed --name UiPath-Official --username user --password "$env:UIPATH_FEED_PAT" --store-password-in-clear-text
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:UIPATH_FEED_PAT) { Write-Host 'Missing secret UIPATH_FEED_PAT'; exit 1 }
+          $feed = 'https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json'
+          dotnet --info | Out-Null
+          dotnet nuget remove source UiPath-Official 2>$null | Out-Null
+          dotnet nuget add source $feed --name UiPath-Official --username user --password "$env:UIPATH_FEED_PAT" --store-password-in-clear-text
 
       - name: Install UiPath CLI
-        if: ${{ secrets.UIPATH_FEED_PAT != '' }}
+        if: ${{ secrets.UIPATH_FEED_PAT && secrets.UIPATH_FEED_PAT != '' }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -41,7 +47,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Write-Host 'nuget install failed'; exit 1 }
 
       - name: Run pack and capture log
-        if: ${{ secrets.UIPATH_FEED_PAT != '' }}
+        if: ${{ secrets.UIPATH_FEED_PAT && secrets.UIPATH_FEED_PAT != '' }}
         id: pack-step
         shell: pwsh
         run: |
@@ -64,6 +70,7 @@ jobs:
           path: |
             .\dist\*.nupkg
             pack.log
+          if-no-files-found: warn
 
   analyze:
     needs: pack
