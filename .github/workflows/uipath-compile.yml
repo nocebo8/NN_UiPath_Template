@@ -32,8 +32,8 @@ jobs:
             if ($page.items) {
               foreach ($entry in $page.items) { $versions += $entry.catalogEntry.version }
             } else {
-              # fetch page
-              $pageJson = Invoke-RestMethod -Uri $page.@id -UseBasicParsing
+              # fetch page (property name contains '@')
+              $pageJson = Invoke-RestMethod -Uri $page.'@id' -UseBasicParsing
               foreach ($entry in $pageJson.items) { $versions += $entry.catalogEntry.version }
             }
           }
