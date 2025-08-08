@@ -10,14 +10,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download UiPath CLI (NuGet)
+      - name: Download NuGet
         shell: pwsh
         run: |
           curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
-          ./nuget.exe install UiPath.CLI.Windows -OutputDirectory .\uipath-cli -Source https://api.nuget.org/v3/index.json
+
+      - name: Install UiPath CLI from UiPath feed
+        shell: pwsh
+        run: |
+          $source = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json"
+          Write-Host "Installing UiPath.CLI.Windows from $source"
+          .\nuget.exe install UiPath.CLI.Windows -OutputDirectory .\uipath-cli -Source $source -NonInteractive
 
       - name: Pack (compile validation)
         shell: pwsh
         run: |
-          $cli = Get-ChildItem .\uipath-cli\UiPath.CLI.Windows.*\tools\uipcli.exe | Select-Object -First 1
-          & $cli pack --input "Golden_Template" --output ".\dist" --version "1.0.${{ github.run_number }}" --type Process
+          $cli = Get-ChildItem .\uipath-cli -Recurse -Filter uipcli.exe | Select-Object -First 1
+          if (-not $cli) {
+            Write-Host "uipcli.exe not found in .\uipath-cli - listing contents for debug:"
+            Get-ChildItem .\uipath-cli -Recurse | Select-Object -First 200
+            exit 1
+          }
+          Write-Host "Using CLI: $($cli.FullName)"
+          & $cli.FullName pack --input "Golden_Template" --output ".\dist" --version "1.0.${{ github.run_number }}" --type Process 2>&1 | Tee-Object pack.log
+
+      - name: Upload pack artifacts and logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: uipath-pack-results
+          path: |
+            .\dist\*.nupkg
+            pack.log
