@@ -1,0 +1,106 @@
+<Activity mc:Ignorable="sap sap2010 sap2013" x:Class="AddTransactionToReport" xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation" xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation" xmlns:sap2013="http://schemas.microsoft.com/netfx/2013/xaml/activities/presentation" xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib" xmlns:sco="clr-namespace:System.Collections.ObjectModel;assembly=mscorlib" xmlns:ui="http://schemas.uipath.com/workflow/activities" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <TextExpression.NamespacesForImplementation>
+    <sco:Collection x:TypeArguments="x:String" Capacity="25">
+      <x:String>System.Activities</x:String>
+      <x:String>System.Activities.Statements</x:String>
+      <x:String>System.Activities.Expressions</x:String>
+      <x:String>System.Activities.Validation</x:String>
+      <x:String>System.Activities.XamlIntegration</x:String>
+      <x:String>Microsoft.VisualBasic</x:String>
+      <x:String>Microsoft.VisualBasic.Activities</x:String>
+      <x:String>System</x:String>
+      <x:String>System.Collections</x:String>
+      <x:String>System.Collections.Generic</x:String>
+      <x:String>System.Collections.ObjectModel</x:String>
+      <x:String>System.Data</x:String>
+      <x:String>System.Diagnostics</x:String>
+      <x:String>System.Drawing</x:String>
+      <x:String>System.IO</x:String>
+      <x:String>System.Linq</x:String>
+      <x:String>System.Net.Mail</x:String>
+      <x:String>System.Xml</x:String>
+      <x:String>System.Xml.Linq</x:String>
+      <x:String>System.Windows.Markup</x:String>
+      <x:String>System.ComponentModel</x:String>
+      <x:String>System.Runtime.Serialization</x:String>
+      <x:String>System.Xml.Serialization</x:String>
+      <x:String>System.Text</x:String>
+      <x:String>System.Text.RegularExpressions</x:String>
+    </sco:Collection>
+  </TextExpression.NamespacesForImplementation>
+  <TextExpression.ReferencesForImplementation>
+    <sco:Collection x:TypeArguments="AssemblyReference" Capacity="25">
+      <AssemblyReference>System.Activities</AssemblyReference>
+      <AssemblyReference>Microsoft.VisualBasic</AssemblyReference>
+      <AssemblyReference>mscorlib</AssemblyReference>
+      <AssemblyReference>System.Data</AssemblyReference>
+      <AssemblyReference>System.Data.Common</AssemblyReference>
+      <AssemblyReference>System.Drawing</AssemblyReference>
+      <AssemblyReference>System.Core</AssemblyReference>
+      <AssemblyReference>System.Xml</AssemblyReference>
+      <AssemblyReference>System.Xml.Linq</AssemblyReference>
+      <AssemblyReference>System.Xaml</AssemblyReference>
+      <AssemblyReference>System.ServiceModel</AssemblyReference>
+      <AssemblyReference>System.ComponentModel.Composition</AssemblyReference>
+      <AssemblyReference>System.Runtime.Serialization</AssemblyReference>
+      <AssemblyReference>System.Text</AssemblyReference>
+      <AssemblyReference>System.Text.RegularExpressions</AssemblyReference>
+    </sco:Collection>
+  </TextExpression.ReferencesForImplementation>
+  <Sequence DisplayName="Add Transaction To Report" sap:VirtualizedContainerService.HintSize="496,237" sap2010:WorkflowViewState.IdRef="Sequence_1">
+    <ui:InvokeCode DisplayName="Add Transaction Row To CSV" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeCode_1">
+      <ui:InvokeCode.Code>
+        <![CDATA[
+// Calculate processing time in seconds
+var processingTimeSeconds = 0.0;
+if (in_StartTime != default(DateTime) &amp;&amp; in_EndTime != default(DateTime))
+{
+    processingTimeSeconds = (in_EndTime - in_StartTime).TotalSeconds;
+}
+
+// Format dates for CSV
+var startTimeStr = in_StartTime != default(DateTime) ? in_StartTime.ToString("yyyy-MM-dd HH:mm:ss") : "";
+var endTimeStr = in_EndTime != default(DateTime) ? in_EndTime.ToString("yyyy-MM-dd HH:mm:ss") : "";
+
+// Escape semicolons and quotes in text fields
+var referenceNumber = (in_ReferenceNumber ?? "").Replace(";", "\\;").Replace("\"", "\"\"");
+var exceptionType = (in_ExceptionType ?? "").Replace(";", "\\;").Replace("\"", "\"\"");
+var exceptionMessage = (in_ExceptionMessage ?? "").Replace(";", "\\;").Replace("\"", "\"\"");
+
+// Create CSV row with semicolon separator
+var csvRow = $"{referenceNumber};{startTimeStr};{endTimeStr};{processingTimeSeconds:F2};{in_Result};{exceptionType};{exceptionMessage}";
+
+// Append to CSV file with UTF-8 encoding
+using (var writer = new StreamWriter(in_ReportPath, true, Encoding.UTF8))
+{
+    writer.WriteLine(csvRow);
+}
+]]>
+      </ui:InvokeCode.Code>
+      <ui:InvokeCode.Arguments>
+        <InArgument x:TypeArguments="x:String" x:Key="in_ReportPath">
+          <CSharpValue x:TypeArguments="x:String">in_ReportPath</CSharpValue>
+        </InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_ReferenceNumber">
+          <CSharpValue x:TypeArguments="x:String">in_ReferenceNumber</CSharpValue>
+        </InArgument>
+        <InArgument x:TypeArguments="x:DateTime" x:Key="in_StartTime">
+          <CSharpValue x:TypeArguments="x:DateTime">in_StartTime</CSharpValue>
+        </InArgument>
+        <InArgument x:TypeArguments="x:DateTime" x:Key="in_EndTime">
+          <CSharpValue x:TypeArguments="x:DateTime">in_EndTime</CSharpValue>
+        </InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_Result">
+          <CSharpValue x:TypeArguments="x:String">in_Result</CSharpValue>
+        </InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_ExceptionType">
+          <CSharpValue x:TypeArguments="x:String">in_ExceptionType</CSharpValue>
+        </InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_ExceptionMessage">
+          <CSharpValue x:TypeArguments="x:String">in_ExceptionMessage</CSharpValue>
+        </InArgument>
+      </ui:InvokeCode.Arguments>
+    </ui:InvokeCode>
+    <ui:LogMessage DisplayName="Log Transaction Added" sap:VirtualizedContainerService.HintSize="334,94" sap2010:WorkflowViewState.IdRef="LogMessage_1" Level="Info" Message="[String.Format(&quot;Transaction added to report: {0}&quot;, in_ReferenceNumber)]" />
+  </Sequence>
+</Activity>

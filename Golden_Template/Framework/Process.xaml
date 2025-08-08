@@ -70,6 +70,13 @@
         </InArgument>
       </ui:LogMessage.Message>
     </ui:LogMessage>
+    <ui:InvokeCode DisplayName="Set Transaction Start Time" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeCode_1">
+      <ui:InvokeCode.Code>
+        <![CDATA[
+TransactionStartTime = DateTime.Now;
+]]>
+      </ui:InvokeCode.Code>
+    </ui:InvokeCode>
     <ui:Comment DisplayName="Comment (placeholder)" sap:VirtualizedContainerService.HintSize="334,55" sap2010:WorkflowViewState.IdRef="Comment_1" Text="//  Invoke steps of the process" />
   </Sequence>
 </Activity>

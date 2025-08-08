@@ -247,6 +247,41 @@
                   </scg:List>
                 </ui:RemoveLogFields.Fields>
               </ui:RemoveLogFields>
+              <ui:InvokeCode DisplayName="Update Transaction Statistics (Success)" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeCode_1">
+                <ui:InvokeCode.Code>
+                  <![CDATA[
+TransactionEndTime = DateTime.Now;
+TotalTransactions++;
+SuccessfulTransactions++;
+TotalProcessingTime += (TransactionEndTime - TransactionStartTime).TotalSeconds;
+]]>
+                </ui:InvokeCode.Code>
+              </ui:InvokeCode>
+              <ui:InvokeWorkflowFile DisplayName="Add Transaction To Report (Success)" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_1" WorkflowFileName="Workflows\AddTransactionToReport.xaml">
+                <ui:InvokeWorkflowFile.Arguments>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_ReportPath">
+                    <CSharpValue x:TypeArguments="x:String">ReportPath</CSharpValue>
+                  </InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_ReferenceNumber">
+                    <CSharpValue x:TypeArguments="x:String">in_TransactionID</CSharpValue>
+                  </InArgument>
+                  <InArgument x:TypeArguments="x:DateTime" x:Key="in_StartTime">
+                    <CSharpValue x:TypeArguments="x:DateTime">TransactionStartTime</CSharpValue>
+                  </InArgument>
+                  <InArgument x:TypeArguments="x:DateTime" x:Key="in_EndTime">
+                    <CSharpValue x:TypeArguments="x:DateTime">TransactionEndTime</CSharpValue>
+                  </InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_Result">
+                    <CSharpValue x:TypeArguments="x:String">"Success"</CSharpValue>
+                  </InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_ExceptionType">
+                    <CSharpValue x:TypeArguments="x:String">""</CSharpValue>
+                  </InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_ExceptionMessage">
+                    <CSharpValue x:TypeArguments="x:String">""</CSharpValue>
+                  </InArgument>
+                </ui:InvokeWorkflowFile.Arguments>
+              </ui:InvokeWorkflowFile>
             </Sequence>
           </Sequence>
           <FlowStep.Next>
@@ -474,6 +509,41 @@
                       </scg:List>
                     </ui:RemoveLogFields.Fields>
                   </ui:RemoveLogFields>
+                  <ui:InvokeCode DisplayName="Update Transaction Statistics (Business Exception)" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeCode_2">
+                    <ui:InvokeCode.Code>
+                      <![CDATA[
+TransactionEndTime = DateTime.Now;
+TotalTransactions++;
+FailedTransactions++;
+TotalProcessingTime += (TransactionEndTime - TransactionStartTime).TotalSeconds;
+]]>
+                    </ui:InvokeCode.Code>
+                  </ui:InvokeCode>
+                  <ui:InvokeWorkflowFile DisplayName="Add Transaction To Report (Business Exception)" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_2" WorkflowFileName="Workflows\AddTransactionToReport.xaml">
+                    <ui:InvokeWorkflowFile.Arguments>
+                      <InArgument x:TypeArguments="x:String" x:Key="in_ReportPath">
+                        <CSharpValue x:TypeArguments="x:String">ReportPath</CSharpValue>
+                      </InArgument>
+                      <InArgument x:TypeArguments="x:String" x:Key="in_ReferenceNumber">
+                        <CSharpValue x:TypeArguments="x:String">in_TransactionID</CSharpValue>
+                      </InArgument>
+                      <InArgument x:TypeArguments="x:DateTime" x:Key="in_StartTime">
+                        <CSharpValue x:TypeArguments="x:DateTime">TransactionStartTime</CSharpValue>
+                      </InArgument>
+                      <InArgument x:TypeArguments="x:DateTime" x:Key="in_EndTime">
+                        <CSharpValue x:TypeArguments="x:DateTime">TransactionEndTime</CSharpValue>
+                      </InArgument>
+                      <InArgument x:TypeArguments="x:String" x:Key="in_Result">
+                        <CSharpValue x:TypeArguments="x:String">"Business Exception"</CSharpValue>
+                      </InArgument>
+                      <InArgument x:TypeArguments="x:String" x:Key="in_ExceptionType">
+                        <CSharpValue x:TypeArguments="x:String">in_BusinessException.GetType().Name</CSharpValue>
+                      </InArgument>
+                      <InArgument x:TypeArguments="x:String" x:Key="in_ExceptionMessage">
+                        <CSharpValue x:TypeArguments="x:String">in_BusinessException.Message</CSharpValue>
+                      </InArgument>
+                    </ui:InvokeWorkflowFile.Arguments>
+                  </ui:InvokeWorkflowFile>
                 </Sequence>
               </Sequence>
               <FlowStep.Next>
@@ -736,6 +806,41 @@
                     </scg:List>
                   </ui:RemoveLogFields.Fields>
                 </ui:RemoveLogFields>
+                <ui:InvokeCode DisplayName="Update Transaction Statistics (System Exception)" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeCode_3">
+                  <ui:InvokeCode.Code>
+                    <![CDATA[
+TransactionEndTime = DateTime.Now;
+TotalTransactions++;
+FailedTransactions++;
+TotalProcessingTime += (TransactionEndTime - TransactionStartTime).TotalSeconds;
+]]>
+                  </ui:InvokeCode.Code>
+                </ui:InvokeCode>
+                <ui:InvokeWorkflowFile DisplayName="Add Transaction To Report (System Exception)" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_6" WorkflowFileName="Workflows\AddTransactionToReport.xaml">
+                  <ui:InvokeWorkflowFile.Arguments>
+                    <InArgument x:TypeArguments="x:String" x:Key="in_ReportPath">
+                      <CSharpValue x:TypeArguments="x:String">ReportPath</CSharpValue>
+                    </InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="in_ReferenceNumber">
+                      <CSharpValue x:TypeArguments="x:String">in_TransactionID</CSharpValue>
+                    </InArgument>
+                    <InArgument x:TypeArguments="x:DateTime" x:Key="in_StartTime">
+                      <CSharpValue x:TypeArguments="x:DateTime">TransactionStartTime</CSharpValue>
+                    </InArgument>
+                    <InArgument x:TypeArguments="x:DateTime" x:Key="in_EndTime">
+                      <CSharpValue x:TypeArguments="x:DateTime">TransactionEndTime</CSharpValue>
+                    </InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="in_Result">
+                      <CSharpValue x:TypeArguments="x:String">"System Exception"</CSharpValue>
+                    </InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="in_ExceptionType">
+                      <CSharpValue x:TypeArguments="x:String">in_SystemException.GetType().Name</CSharpValue>
+                    </InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="in_ExceptionMessage">
+                      <CSharpValue x:TypeArguments="x:String">in_SystemException.Message</CSharpValue>
+                    </InArgument>
+                  </ui:InvokeWorkflowFile.Arguments>
+                </ui:InvokeWorkflowFile>
                 <TryCatch sap2010:Annotation.AnnotationText="Close all applications before returning to the Initialization state and opening them again.&#xA;If applications cannot be closed, kill their respective processes." DisplayName="Try closing applications" sap:VirtualizedContainerService.HintSize="516,396" sap2010:WorkflowViewState.IdRef="TryCatch_3">
                   <sap:WorkflowViewStateService.ViewState>
                     <scg:Dictionary x:TypeArguments="x:String, x:Object">

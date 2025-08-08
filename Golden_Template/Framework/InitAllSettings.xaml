@@ -359,5 +359,21 @@
         </Catch>
       </TryCatch.Catches>
     </TryCatch>
+    <ui:InvokeCode DisplayName="Add Default Report Output Path" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeCode_1">
+      <ui:InvokeCode.Code>
+        <![CDATA[
+// Add default report output path if not present
+if (!out_Config.ContainsKey("ReportOutputPath"))
+{
+    out_Config["ReportOutputPath"] = "Data\\Output";
+}
+]]>
+      </ui:InvokeCode.Code>
+      <ui:InvokeCode.Arguments>
+        <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="out_Config">
+          <CSharpReference x:TypeArguments="scg:Dictionary(x:String, x:Object)">out_Config</CSharpReference>
+        </InOutArgument>
+      </ui:InvokeCode.Arguments>
+    </ui:InvokeCode>
   </Sequence>
 </Activity>

@@ -140,6 +140,16 @@
                         </InArgument>
                       </ui:InvokeWorkflowFile.Arguments>
                     </ui:InvokeWorkflowFile>
+                    <ui:InvokeWorkflowFile DisplayName="Initialize CSV Report" sap:VirtualizedContainerService.HintSize="484,112" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_3" UnSafe="False" WorkflowFileName="Workflows\InitializeCSVReport.xaml">
+                      <ui:InvokeWorkflowFile.Arguments>
+                        <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_Config">
+                          <CSharpValue x:TypeArguments="scg:Dictionary(x:String, x:Object)">Config</CSharpValue>
+                        </InArgument>
+                        <OutArgument x:TypeArguments="x:String" x:Key="out_ReportPath">
+                          <CSharpReference x:TypeArguments="x:String">ReportPath</CSharpReference>
+                        </OutArgument>
+                      </ui:InvokeWorkflowFile.Arguments>
+                    </ui:InvokeWorkflowFile>
                     <If sap2010:Annotation.AnnotationText="Overwrite queue name from in configuration file in case the argument in_OrchestratorQueueName is specified.&#xA;This provides backward compatibility with &lt; 2018.3." DisplayName="If in_OrchestratorQueueName is specified" sap:VirtualizedContainerService.HintSize="484,294" sap2010:WorkflowViewState.IdRef="If_2">
                       <If.Condition>
                         <InArgument x:TypeArguments="x:Boolean">
@@ -876,7 +886,27 @@
                             </Catch>
                           </TryCatch.Catches>
                           <TryCatch.Finally>
-                            <If DisplayName="If SystemException IsNot Nothing" sap:VirtualizedContainerService.HintSize="484,237" sap2010:WorkflowViewState.IdRef="If_5">
+                            <Sequence DisplayName="End Process Finalization" sap:VirtualizedContainerService.HintSize="484,237" sap2010:WorkflowViewState.IdRef="Sequence_5">
+                              <ui:InvokeWorkflowFile DisplayName="Finalize CSV Report" sap:VirtualizedContainerService.HintSize="334,112" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_9" UnSafe="False" WorkflowFileName="Workflows\FinalizeCSVReport.xaml">
+                                <ui:InvokeWorkflowFile.Arguments>
+                                  <InArgument x:TypeArguments="x:String" x:Key="in_ReportPath">
+                                    <CSharpValue x:TypeArguments="x:String">ReportPath</CSharpValue>
+                                  </InArgument>
+                                  <InArgument x:TypeArguments="x:Int32" x:Key="in_TotalTransactions">
+                                    <CSharpValue x:TypeArguments="x:Int32">TotalTransactions</CSharpValue>
+                                  </InArgument>
+                                  <InArgument x:TypeArguments="x:Int32" x:Key="in_SuccessfulTransactions">
+                                    <CSharpValue x:TypeArguments="x:Int32">SuccessfulTransactions</CSharpValue>
+                                  </InArgument>
+                                  <InArgument x:TypeArguments="x:Int32" x:Key="in_FailedTransactions">
+                                    <CSharpValue x:TypeArguments="x:Int32">FailedTransactions</CSharpValue>
+                                  </InArgument>
+                                  <InArgument x:TypeArguments="x:Double" x:Key="in_TotalProcessingTime">
+                                    <CSharpValue x:TypeArguments="x:Double">TotalProcessingTime</CSharpValue>
+                                  </InArgument>
+                                </ui:InvokeWorkflowFile.Arguments>
+                              </ui:InvokeWorkflowFile>
+                              <If DisplayName="If SystemException IsNot Nothing" sap:VirtualizedContainerService.HintSize="334,237" sap2010:WorkflowViewState.IdRef="If_5">
                               <If.Condition>
                                 <InArgument x:TypeArguments="x:Boolean">
                                   <CSharpValue x:TypeArguments="x:Boolean" sap2010:WorkflowViewState.IdRef="CSharpValue`1_75">SystemException != null &amp;&amp; Convert.ToBoolean(Config["ShouldMarkJobAsFaulted"].ToString())</CSharpValue>
@@ -971,6 +1001,13 @@
       <Variable x:TypeArguments="x:String" sap2010:Annotation.AnnotationText="Transaction ID used for information and logging purposes. Ideally, the ID should be unique for each transaction. " Name="TransactionID" />
       <Variable x:TypeArguments="sd:DataTable" sap2010:Annotation.AnnotationText="Used in case transactions are stored in a DataTable, for example, after being retrieved from a spreadsheet." Name="dt_TransactionData" />
       <Variable x:TypeArguments="x:Int32" sap2010:Annotation.AnnotationText="Used to control the number of consecutive system exceptions." Default="0" Name="ConsecutiveSystemExceptions" />
+      <Variable x:TypeArguments="x:String" sap2010:Annotation.AnnotationText="Path to the CSV report file." Name="ReportPath" />
+      <Variable x:TypeArguments="x:DateTime" sap2010:Annotation.AnnotationText="Start time of the current transaction." Name="TransactionStartTime" />
+      <Variable x:TypeArguments="x:DateTime" sap2010:Annotation.AnnotationText="End time of the current transaction." Name="TransactionEndTime" />
+      <Variable x:TypeArguments="x:Int32" sap2010:Annotation.AnnotationText="Total number of transactions processed." Default="0" Name="TotalTransactions" />
+      <Variable x:TypeArguments="x:Int32" sap2010:Annotation.AnnotationText="Number of successful transactions." Default="0" Name="SuccessfulTransactions" />
+      <Variable x:TypeArguments="x:Int32" sap2010:Annotation.AnnotationText="Number of failed transactions." Default="0" Name="FailedTransactions" />
+      <Variable x:TypeArguments="x:Double" sap2010:Annotation.AnnotationText="Total processing time in seconds." Default="0" Name="TotalProcessingTime" />
     </StateMachine.Variables>
   </StateMachine>
 </Activity>
