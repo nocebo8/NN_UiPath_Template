@@ -1,0 +1,88 @@
+name: UiPath ReFramework – Strict AI Rules
+description: >
+  Zestaw rygorystycznych zasad dla pracy AI (Cursor/GPT-5) z repozytorium UiPath ReFramework.
+  AI może dodawać funkcje obok, ale nie może modyfikować krytycznych plików ReFramework ani naruszać struktury XML.
+  Wszystkie zmiany w plikach chronionych tylko jako minimalne patche (unified diff).
+priority: highest
+alwaysApply: true
+
+# REGUŁA CURSOR — UiPath ReFramework (STRICT)
+
+## 0. Zakres i tryb pracy
+- Model: używaj `gpt-5`.
+- Tryb 2-fazowy:
+  1) PLAN – opis zmian, bez modyfikacji plików.
+  2) PATCH – tylko unified diff minimalnych zmian.
+- Jeśli zmiana narusza zasady — odmów i zaproponuj alternatywę.
+
+## 1. Pliki chronione (NIE EDYTUJ)
+- `Main.xaml`
+- `Framework/**` (Init*, Process*, End*)
+- `project.json`, `GlobalHandlerX.xaml`, `Data/**`
+- `.local/**`, `.settings/**`
+
+**Wyjątek:** minimalny patch dodający Invoke Workflow File lub argumenty — bez innych zmian.
+
+## 2. Dozwolone miejsca na nowe rzeczy
+- Nowe workflowy w: `Workflows/<FeatureName>/**`
+- Kod C# tylko w Invoke Code lub w osobnej bibliotece .NET po wyraźnej prośbie.
+- Pliki pomocnicze w `Docs/**`.
+
+## 3. Twarde zasady dla XAML
+- Nie zmieniaj deklaracji XML, namespace'ów, prefiksów: `xmlns`, `x:*`, `sap2010:*`, `mc:*`, `ui:*`, `sap:*`.
+- Nie usuwaj/dokładaj atrybutów typu `mc:Ignorable`, `sap2010:WorkflowViewState.IdRef`, `x:Class`.
+- Nie formatuj, nie zmieniaj EOL, nie zmieniaj kolejności węzłów.
+- Komentarze w `sap2010:Annotation.AnnotationText`.
+- Nie zmieniaj nazw plików XAML.
+
+## 4. Integracja nowych workflowów
+- Wpinanie do ReFrameworku tylko przez Invoke Workflow File w pliku z `Framework/**` jako minimalny patch.
+- Argumenty IN/OUT jasno nazwane, typy zgodne z ReFramework.
+- Mapowanie z istniejącego kontekstu (TransactionItem, Config).
+
+## 5. Styl i zawartość nowych workflowów
+- Nazwa: PascalCase.
+- Preferuj Sequence, Try Catch, Log Message.
+- Obsługa błędów lokalna; zwracaj dane przez OUT.
+- Dodawaj komentarze w `sap2010:Annotation.AnnotationText`.
+
+## 6. PLAN → PATCH (format)
+- PLAN: lista kroków zmian.
+- PATCH: unified diff – tylko zmienione lub nowe pliki, bez pełnego przepisywania.
+- Nowy plik: pełna zawartość XAML w sekcji *** Add File:.
+- Modyfikacja istniejącego: tylko minimalne różnice w sekcji *** Update File:.
+
+## 7. Walidacja i akceptacja
+- CHECKLIST:
+  - [ ] Nowe XAML otwiera się w UiPath Studio
+  - [ ] Validate Project bez błędów
+  - [ ] Brak zmian w namespace'ach/atrybutach w plikach chronionych
+  - [ ] Patch ograniczony do Invoke Workflow File + arguments
+  - [ ] Brak zmian formatowania/porządku/EOL
+
+## 8. Czego NIE robić
+- Nie formatuj istniejących XAML.
+- Nie zmieniaj Flowchart <-> Sequence w plikach chronionych.
+- Nie dotykaj project.json, Config.xlsx, GlobalHandlerX.xaml.
+- Nie zmieniaj nazw folderów systemowych.
+- Nie dodawaj/usuwaj pakietów bez zgody.
+- Nie zwracaj pełnych plików zamiast diffa przy edycji.
+
+## 9. Jakość i logowanie
+- Używaj Log Message (Info/Warn/Error).
+- Obsługuj błędy przewidywalne lokalnie.
+- Nie zmieniaj Global Exception Handler.
+
+## 10. Edycja plików chronionych (wyjątek)
+- Wyłącznie PLAN → minimalny PATCH (unified diff).
+- Tylko Invoke Workflow File, mapowanie argumentów, pojedynczy Assign/If.
+- Zero zmian formatowania, namespace'ów, EOL.
+
+## 11. Komunikaty błędów i eskalacja
+- Jeśli polecenie narusza zasady – odmów i zaproponuj alternatywę.
+- Jeśli trzeba złamać zasadę – poproś o pozwolenie i opisz ryzyko.
+
+## 12. Przykład zadania
+„Dodaj walidację wejścia klienta w nowym workflow `Workflows/Customer/ValidateInput.xaml` (IN: RawItem:String, OUT: IsValid:Boolean, Reason:String).
+W Process.xaml dodaj Invoke Workflow File (minimalny patch).
+Nie zmieniaj namespace'ów/formatowania. PLAN → PATCH (unified diff)."
