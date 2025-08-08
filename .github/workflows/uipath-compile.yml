@@ -1,12 +1,15 @@
-name: UiPath Compile & Report
+name: UiPath Orchestrator Pipeline
 
 on:
   pull_request:
   push:
+    branches: [ master ]
 
 jobs:
   pack:
     runs-on: windows-latest
+    outputs:
+      pack_status: ${{ steps.pack-step.outcome }}
     steps:
       - uses: actions/checkout@v4
 
@@ -15,28 +18,28 @@ jobs:
         run: |
           curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
-      - name: Add UiPath feed and install CLI (with fallback)
+      - name: Configure UiPath NuGet feed (authenticated)
+        shell: pwsh
+        env:
+          UIPATH_FEED_PAT: ${{ secrets.UIPATH_FEED_PAT }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:UIPATH_FEED_PAT) { Write-Host 'Missing secret UIPATH_FEED_PAT'; exit 1 }
+          $feed = 'https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json'
+          dotnet --info | Out-Null
+          dotnet nuget remove source UiPath-Official 2>$null | Out-Null
+          dotnet nuget add source $feed --name UiPath-Official --username user --password "$env:UIPATH_FEED_PAT" --store-password-in-clear-text
+
+      - name: Install UiPath CLI
         shell: pwsh
         run: |
-          $feed = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json"
-          .\nuget.exe sources Add -Name "UiPath-Official" -Source $feed -NonInteractive -ConfigFile .\NuGet.Config 2>$null || Write-Host "source add skipped"
-          $candidates = @("UiPath.CLI.Windows","UiPath.CLI","UiPath.Cli.Windows","UiPath.Cli")
-          $installed = $false
-          foreach ($n in $candidates) {
-            Write-Host "Trying: $n"
-            & .\nuget.exe install $n -OutputDirectory .\uipath-cli -Source "UiPath-Official" -NonInteractive
-            if ($LASTEXITCODE -eq 0) { $installed = $true; break }
-          }
-          if (-not $installed) {
-            $versions = @("1.3.0","1.2.0")
-            foreach ($v in $versions) {
-              $url = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/uipath.cli.windows/$v/uipath.cli.windows.$v.nupkg"
-              try { Invoke-WebRequest -Uri $url -OutFile ".\uipath-cli\uipath.cli.windows.$v.nupkg" -UseBasicParsing -ErrorAction Stop; Expand-Archive -Path ".\uipath-cli\uipath.cli.windows.$v.nupkg" -DestinationPath .\uipath-cli -Force; $installed = $true; break } catch { Write-Host "dl fail $v: $($_.Exception.Message)" }
-            }
-          }
-          if (-not $installed) { Write-Host "CLI install failed"; Get-ChildItem .\uipath-cli -Recurse -Force | Select-Object -First 200; exit 1 }
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path .\uipath-cli -Force | Out-Null
+          & .\nuget.exe install UiPath.CLI.Windows -Source UiPath-Official -OutputDirectory .\uipath-cli -NonInteractive -DirectDownload
+          if ($LASTEXITCODE -ne 0) { Write-Host 'nuget install failed'; exit 1 }
 
       - name: Run pack and capture log
+        id: pack-step
         shell: pwsh
         run: |
           $cli = Get-ChildItem .\uipath-cli -Recurse -Filter uipcli.exe | Select-Object -First 1
@@ -44,7 +47,7 @@ jobs:
           & $cli.FullName pack --input "Golden_Template" --output ".\dist" --version "1.0.${{ github.run_number }}" --type Process 2>&1 | Tee-Object pack.log
         continue-on-error: false
 
-      - name: Upload artifacts (nupkg + pack.log)
+      - name: Upload pack artifacts and log
         uses: actions/upload-artifact@v4
         with:
           name: uipath-pack-results
@@ -52,17 +55,87 @@ jobs:
             .\dist\*.nupkg
             pack.log
 
-      - name: Post PR comment with run result
+  analyze:
+    needs: pack
+    runs-on: ubuntu-latest
+    outputs:
+      has_errors: ${{ steps.scan.outputs.has_errors }}
+    steps:
+      - name: Download pack artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: uipath-pack-results
+          path: ./uipath-pack-results
+
+      - name: Inspect pack.log
+        id: scan
+        run: |
+          if [ -f ./uipath-pack-results/pack.log ]; then
+            echo "---- tail pack.log ----"
+            tail -n 200 ./uipath-pack-results/pack.log || true
+            if grep -i -E "exception|error|failed|Unable to find package" ./uipath-pack-results/pack.log >/dev/null; then
+              echo "Pack produced errors."
+              echo "has_errors=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "No obvious errors found in pack.log."
+              echo "has_errors=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "pack.log not found in artifacts"
+            echo "has_errors=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post PR comment with summary
         if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-            const conclusion = context.payload.workflow_run ? context.payload.workflow_run.conclusion : process.env.GITHUB_RUN_CONCLUSION || '${{ job.status }}';
-            const body = `UiPath pack run [#${process.env.GITHUB_RUN_ID}](${runUrl}) finished with conclusion: **${conclusion}**.\n\nArtifacts and logs attached to the run.`;
+            const conclusion = (await github.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: parseInt(process.env.GITHUB_RUN_ID)
+            })).data.conclusion || 'unknown';
+            const body = `UiPath orchestration run [#${process.env.GITHUB_RUN_ID}](${runUrl}) concluded: **${conclusion}**.\n\nArtifacts: uipath-pack-results (pack.log + .nupkg if produced).`;
             await github.issues.createComment({
               ...context.repo,
               issue_number: context.payload.pull_request.number,
               body
             });
+
+  autofix:
+    needs: analyze
+    if: ${{ needs.analyze.outputs.has_errors == 'true' && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Attempt simple fixes
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y >/dev/null 2>&1 || true
+          sudo apt-get install -y jq >/dev/null 2>&1 || true
+          FILE="Golden_Template/project.json"
+          if [ -f "$FILE" ]; then
+            TMP=$(mktemp)
+            jq '.dependencies |= (."UiPath.System.Activities"="[24.10.0,25.0.0)", ."UiPath.UIAutomation.Activities"="[24.10.0,25.0.0)", ."UiPath.Excel.Activities"="[2.24.0,3.0.0)", ."UiPath.Testing.Activities"="[24.10.0,25.0.0)")' "$FILE" > "$TMP" && mv "$TMP" "$FILE"
+            echo "Adjusted dependency ranges in project.json"
+          else
+            echo "project.json not found; skipping dependency adjustments"
+          fi
+      - name: Commit and push fixes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add -A
+            git commit -m "ci: widen UiPath Activities dependency ranges to fix pack"
+            git push
+          else
+            echo "No changes to push."
+          fi

@@ -1,0 +1,50 @@
+name: UiPath Pack (Self-hosted)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ ci/** ]
+  pull_request:
+
+jobs:
+  pack_selfhosted:
+    runs-on: [self-hosted, windows]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Locate uipcli.exe on self-hosted runner
+        id: findcli
+        shell: pwsh
+        run: |
+          $paths = @(
+            "C:\\Program Files\\UiPath",
+            "C:\\Program Files (x86)\\UiPath",
+            "$env:USERPROFILE\\.nuget\\packages\\uipath.cli.windows"
+          )
+          $cli = $null
+          foreach ($p in $paths) {
+            if (Test-Path $p) {
+              try {
+                $cand = Get-ChildItem -Path $p -Recurse -Filter uipcli.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+                if ($cand) { $cli = $cand.FullName; break }
+              } catch {}
+            }
+          }
+          if (-not $cli) { Write-Host "uipcli.exe not found; ensure UiPath Studio/CLI is installed on the runner"; exit 1 }
+          echo "cli=$cli" >> $env:GITHUB_OUTPUT
+          Write-Host "Using CLI: $cli"
+
+      - name: Run pack (self-hosted)
+        shell: pwsh
+        run: |
+          $cli = "${{ steps.findcli.outputs.cli }}"
+          & $cli pack --input "Golden_Template" --output ".\dist" --version "1.0.${{ github.run_number }}" --type Process 2>&1 | Tee-Object pack.log
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: uipath-pack-results-selfhosted
+          path: |
+            .\dist\*.nupkg
+            pack.log
+

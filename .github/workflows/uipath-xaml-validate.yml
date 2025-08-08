@@ -1,0 +1,66 @@
+name: UiPath XAML Validate (Hosted)
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  xaml_validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate XAML with .NET WF loader (Windows PowerShell)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          try { Add-Type -AssemblyName System.Activities } catch { Write-Host 'Failed to load System.Activities'; throw }
+          $errors = @()
+          $root = Join-Path $PWD 'Golden_Template'
+          if (-not (Test-Path $root)) { Write-Host "Golden_Template folder not found"; exit 1 }
+          Get-ChildItem -Path $root -Recurse -Filter *.xaml | ForEach-Object {
+            $f = $_.FullName
+            try {
+              [System.Activities.XamlIntegration.ActivityXamlServices]::Load($f) | Out-Null
+              Write-Host "OK  $f"
+            } catch {
+              Write-Host "ERR $f"
+              $errors += [PSCustomObject]@{ File=$f; Error=$_.Exception.Message }
+            }
+          }
+          $out = "xaml_validate.log"
+          if ($errors.Count -gt 0) {
+            $errors | Format-Table -AutoSize | Out-String | Tee-Object $out | Out-Null
+            Write-Host "Validation found $($errors.Count) error(s)"; exit 1
+          } else {
+            'All XAML files loaded successfully.' | Tee-Object $out | Out-Null
+          }
+
+      - name: Upload validation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xaml-validate-log
+          path: xaml_validate.log
+
+      - name: Pseudo-pack (zip project as .nupkg)
+        if: ${{ success() }}
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outDir = Join-Path $PWD 'dist'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $pkgName = "Golden_Template.1.0.${{ github.run_number }}.nupkg"
+          $zipPath = Join-Path $outDir $pkgName
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::CreateFromDirectory((Join-Path $PWD 'Golden_Template'), $zipPath)
+          Write-Host "Created pseudo package: $zipPath"
+
+      - name: Upload pseudo package
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uipath-pseudo-nupkg
+          path: dist/*.nupkg
+
