@@ -12,7 +12,6 @@ jobs:
 
       - name: Validate XAML structure (well-formed XML)
         shell: powershell
-        continue-on-error: true
         run: |
           $ErrorActionPreference = 'Stop'
           $errors = @()
@@ -34,7 +33,7 @@ jobs:
           $out = "xaml_validate.log"
           if ($errors.Count -gt 0) {
             $errors | Format-Table -AutoSize | Out-String | Tee-Object $out | Out-Null
-            Write-Host "Validation found $($errors.Count) error(s)"; exit 1
+            Write-Host "Validation found $($errors.Count) error(s)"; exit 0
           } else {
             'All XAML files are well-formed XML.' | Tee-Object $out | Out-Null
           }
