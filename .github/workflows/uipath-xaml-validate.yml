@@ -10,6 +10,53 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Static checks (project.json and referenced workflows)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $PWD 'Golden_Template'
+          if (-not (Test-Path $root)) { Write-Host "Golden_Template folder not found"; exit 1 }
+          $issues = @()
+          # Check project.json main exists
+          $projPath = Join-Path $root 'project.json'
+          if (-not (Test-Path $projPath)) { $issues += "Missing project.json at $projPath" }
+          else {
+            try {
+              $proj = Get-Content -LiteralPath $projPath -Raw | ConvertFrom-Json
+              $mainRel = $proj.main
+              if ([string]::IsNullOrWhiteSpace($mainRel)) { $issues += "project.json: 'main' is empty" }
+              else {
+                $mainAbs = Join-Path $root $mainRel
+                if (-not (Test-Path $mainAbs)) { $issues += "project.json: main not found -> $mainRel" }
+              }
+            } catch {
+              $issues += "project.json is not valid JSON: $($_.Exception.Message)"
+            }
+          }
+          # Check all ui:InvokeWorkflowFile WorkflowFileName targets exist (relative to project root)
+          $xamls = Get-ChildItem -Path $root -Recurse -Filter *.xaml
+          foreach ($xf in $xamls) {
+            $text = Get-Content -LiteralPath $xf.FullName -Raw
+            $regex = '<ui:InvokeWorkflowFile[\s\S]*?WorkflowFileName="([^"]+?)"'
+            $matches = [System.Text.RegularExpressions.Regex]::Matches($text, $regex)
+            foreach ($m in $matches) {
+              $ref = $m.Groups[1].Value
+              $target = Join-Path $root $ref
+              if (-not (Test-Path $target)) { $issues += "Missing workflow target '$ref' referenced in '$($xf.FullName)'" }
+            }
+          }
+          # Check basic assets/config presence
+          $cfg = Join-Path $root 'Data/Config.xlsx'
+          if (-not (Test-Path $cfg)) { $issues += "Missing Data/Config.xlsx" }
+          # Emit log and decide
+          $log = "static_checks.log"
+          if ($issues.Count -gt 0) {
+            $issues | Out-String | Tee-Object $log | Out-Null
+            Write-Host "Static checks found $($issues.Count) issue(s)"; exit 1
+          } else {
+            'Static checks passed.' | Tee-Object $log | Out-Null
+          }
+
       - name: Validate XAML structure (well-formed XML)
         shell: powershell
         run: |
@@ -43,7 +90,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: xaml-validate-log
-          path: xaml_validate.log
+          path: |
+            xaml_validate.log
+            static_checks.log
 
       - name: Pseudo-pack (zip project as .nupkg)
         if: always()
