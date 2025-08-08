@@ -18,26 +18,34 @@ jobs:
         run: |
           curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
-      - name: Install UiPath CLI (UiPath feed + fallback)
+      - name: Install UiPath CLI (query feed for latest version)
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           $feed = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json"
-          .\nuget.exe sources Add -Name "UiPath-Official" -Source $feed -NonInteractive -ConfigFile .\NuGet.Config 2>$null || Write-Host "source add skipped"
           $candidates = @("UiPath.CLI.Windows","UiPath.CLI","UiPath.Cli.Windows","UiPath.Cli")
-          $installed = $false
+          $pkg = $null; $ver = $null
           foreach ($n in $candidates) {
-            Write-Host "Trying: $n"
-            & .\nuget.exe install $n -OutputDirectory .\uipath-cli -Source "UiPath-Official" -NonInteractive
-            if ($LASTEXITCODE -eq 0) { $installed = $true; break }
+            try {
+              Write-Host "Querying versions for $n from feed..."
+              $lines = & .\nuget.exe list $n -Source $feed -AllVersions -Prerelease 2>$null
+              if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($lines)) { continue }
+              $versions = @()
+              foreach ($ln in $lines) {
+                if ($ln -match "^$n\s+([0-9][0-9A-Za-z\.-]*)") { $versions += $Matches[1] }
+              }
+              if ($versions.Count -gt 0) {
+                $sorted = $versions | Sort-Object {[version]($_ -replace "-.*$","0")} , $_ | Select-Object -Unique
+                $ver = $sorted[-1]
+                $pkg = $n
+                break
+              }
+            } catch { Write-Host ("list fail for {0}: {1}" -f $n, $_.Exception.Message) }
           }
-          if (-not $installed) {
-            $versions = @("1.3.0","1.2.0")
-            foreach ($v in $versions) {
-              $url = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/uipath.cli.windows/$v/uipath.cli.windows.$v.nupkg"
-              try { Invoke-WebRequest -Uri $url -OutFile ".\uipath-cli\uipath.cli.windows.$v.nupkg" -UseBasicParsing -ErrorAction Stop; Expand-Archive -Path ".\uipath-cli\uipath.cli.windows.$v.nupkg" -DestinationPath .\uipath-cli -Force; $installed = $true; break } catch { Write-Host ("dl fail {0}: {1}" -f $v, $_.Exception.Message) }
-            }
-          }
-          if (-not $installed) { Write-Host "CLI install failed"; Get-ChildItem .\uipath-cli -Recurse -Force | Select-Object -First 200; exit 1 }
+          if (-not $pkg -or -not $ver) { Write-Host "Could not resolve UiPath CLI package/version from feed."; exit 1 }
+          Write-Host "Installing $pkg version $ver from feed..."
+          & .\nuget.exe install $pkg -Version $ver -Source $feed -OutputDirectory .\uipath-cli -NonInteractive -NoCache -DirectDownload
+          if ($LASTEXITCODE -ne 0) { Write-Host "nuget install failed"; exit 1 }
 
       - name: Run pack and capture log
         id: pack-step
