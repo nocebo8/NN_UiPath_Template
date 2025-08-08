@@ -57,6 +57,49 @@ jobs:
             'Static checks passed.' | Tee-Object $log | Out-Null
           }
 
+      - name: Validate InvokeWorkflowFile arguments vs callee
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $PWD 'Golden_Template'
+          $issues = @()
+          $warnings = @()
+          $xamls = Get-ChildItem -Path $root -Recurse -Filter *.xaml
+          foreach ($caller in $xamls) {
+            $text = Get-Content -LiteralPath $caller.FullName -Raw
+            $pattern = '<ui:InvokeWorkflowFile[^>]*WorkflowFileName="([^"]+)"[\s\S]*?>[\s\S]*?</ui:InvokeWorkflowFile>'
+            $invokes = [System.Text.RegularExpressions.Regex]::Matches($text, $pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+            foreach ($m in $invokes) {
+              $ref = $m.Groups[1].Value
+              $inner = $m.Value
+              $argKeys = @()
+              $argMatches = [System.Text.RegularExpressions.Regex]::Matches($inner, 'x:Key="([^"]+)"')
+              foreach ($am in $argMatches) { $argKeys += $am.Groups[1].Value }
+              $calleePath = Join-Path $root $ref
+              if (-not (Test-Path $calleePath)) { continue }
+              try {
+                [xml]$calleeXml = Get-Content -LiteralPath $calleePath -Raw
+                $nsMgr = New-Object System.Xml.XmlNamespaceManager($calleeXml.NameTable)
+                $nsMgr.AddNamespace('x','http://schemas.microsoft.com/winfx/2006/xaml')
+                $declNodes = $calleeXml.SelectNodes('//*[local-name()="Members"]/*[local-name()="Property"]')
+                $declNames = @()
+                foreach ($n in $declNodes) { $declNames += $n.Attributes['Name'].Value }
+                # extras provided but not declared
+                $extras = $argKeys | Where-Object { $_ -and ($declNames -notcontains $_) } | Select-Object -Unique
+                if ($extras.Count -gt 0) { $issues += "${($caller.FullName)} -> '$ref': unknown argument(s): ${($extras -join ', ')}" }
+                # warn on missing inputs
+                $missing = $declNames | Where-Object { ($argKeys -notcontains $_) -and ($_.StartsWith('in_') -or $_.StartsWith('io_')) }
+                if ($missing.Count -gt 0) { $warnings += "${($caller.FullName)} -> '$ref': missing argument(s): ${($missing -join ', ')}" }
+              } catch {
+                $warnings += "Failed to parse callee '$ref' for ${($caller.FullName)}: $($_.Exception.Message)"
+              }
+            }
+          }
+          $out = 'invoke_args_check.log'
+          if ($warnings.Count -gt 0) { ($warnings -join "`n") | Out-File -FilePath $out -Encoding UTF8 -Append }
+          if ($issues.Count -gt 0) { ($issues -join "`n") | Out-File -FilePath $out -Encoding UTF8 -Append; Write-Host "Invoke argument validation FAILED"; exit 1 }
+          else { 'Invoke argument validation passed.' | Out-File -FilePath $out -Encoding UTF8 }
+
       - name: Validate XAML structure (well-formed XML)
         shell: powershell
         run: |
@@ -93,6 +136,7 @@ jobs:
           path: |
             xaml_validate.log
             static_checks.log
+            invoke_args_check.log
 
       - name: Pseudo-pack (zip project as .nupkg)
         if: always()
