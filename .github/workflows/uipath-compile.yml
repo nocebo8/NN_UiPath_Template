@@ -19,6 +19,7 @@ jobs:
           curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
       - name: Configure UiPath NuGet feed (authenticated)
+        if: ${{ secrets.UIPATH_FEED_PAT != '' }}
         shell: pwsh
         env:
           UIPATH_FEED_PAT: ${{ secrets.UIPATH_FEED_PAT }}
@@ -31,6 +32,7 @@ jobs:
           dotnet nuget add source $feed --name UiPath-Official --username user --password "$env:UIPATH_FEED_PAT" --store-password-in-clear-text
 
       - name: Install UiPath CLI
+        if: ${{ secrets.UIPATH_FEED_PAT != '' }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -39,6 +41,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Write-Host 'nuget install failed'; exit 1 }
 
       - name: Run pack and capture log
+        if: ${{ secrets.UIPATH_FEED_PAT != '' }}
         id: pack-step
         shell: pwsh
         run: |
@@ -46,6 +49,13 @@ jobs:
           if (-not $cli) { Write-Host "uipcli.exe not found"; Get-ChildItem .\uipath-cli -Recurse; exit 1 }
           & $cli.FullName pack --input "Golden_Template" --output ".\dist" --version "1.0.${{ github.run_number }}" --type Process 2>&1 | Tee-Object pack.log
         continue-on-error: false
+
+      - name: Skip pack (no UIPATH_FEED_PAT provided)
+        if: ${{ secrets.UIPATH_FEED_PAT == '' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path .\dist -Force | Out-Null
+          "SKIPPED_PACK: missing UIPATH_FEED_PAT secret; running only XAML validation in hosted pipeline." | Out-File -FilePath pack.log -Encoding UTF8
 
       - name: Upload pack artifacts and log
         uses: actions/upload-artifact@v4
@@ -73,6 +83,11 @@ jobs:
           if [ -f ./uipath-pack-results/pack.log ]; then
             echo "---- tail pack.log ----"
             tail -n 200 ./uipath-pack-results/pack.log || true
+            if grep -q "SKIPPED_PACK:" ./uipath-pack-results/pack.log; then
+              echo "Pack was skipped by configuration (no secret); treating as success."
+              echo "has_errors=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             if grep -i -E "exception|error|failed|Unable to find package" ./uipath-pack-results/pack.log >/dev/null; then
               echo "Pack produced errors."
               echo "has_errors=true" >> "$GITHUB_OUTPUT"
