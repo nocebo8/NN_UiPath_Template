@@ -18,34 +18,36 @@ jobs:
         run: |
           curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
-      - name: Install UiPath CLI (query feed for latest version)
+      - name: Install UiPath CLI (download latest nupkg via registration API)
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $feed = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json"
-          $candidates = @("UiPath.CLI.Windows","UiPath.CLI","UiPath.Cli.Windows","UiPath.Cli")
-          $pkg = $null; $ver = $null
-          foreach ($n in $candidates) {
-            try {
-              Write-Host "Querying versions for $n from feed..."
-              $lines = & .\nuget.exe list $n -Source $feed -AllVersions -Prerelease 2>$null
-              if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($lines)) { continue }
-              $versions = @()
-              foreach ($ln in $lines) {
-                if ($ln -match "^$n\s+([0-9][0-9A-Za-z\.-]*)") { $versions += $Matches[1] }
-              }
-              if ($versions.Count -gt 0) {
-                $sorted = $versions | Sort-Object {[version]($_ -replace "-.*$","0")} , $_ | Select-Object -Unique
-                $ver = $sorted[-1]
-                $pkg = $n
-                break
-              }
-            } catch { Write-Host ("list fail for {0}: {1}" -f $n, $_.Exception.Message) }
+          $pkgId = 'uipath.cli.windows'
+          $regUrl = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/registration5-semver2/$pkgId/index.json"
+          Write-Host "Fetching registration index: $regUrl"
+          $json = Invoke-RestMethod -Uri $regUrl -UseBasicParsing
+          if (-not $json.items) { Write-Host 'No registration items found'; exit 1 }
+          $versions = @()
+          foreach ($page in $json.items) {
+            if ($page.items) {
+              foreach ($entry in $page.items) { $versions += $entry.catalogEntry.version }
+            } else {
+              # fetch page
+              $pageJson = Invoke-RestMethod -Uri $page.@id -UseBasicParsing
+              foreach ($entry in $pageJson.items) { $versions += $entry.catalogEntry.version }
+            }
           }
-          if (-not $pkg -or -not $ver) { Write-Host "Could not resolve UiPath CLI package/version from feed."; exit 1 }
-          Write-Host "Installing $pkg version $ver from feed..."
-          & .\nuget.exe install $pkg -Version $ver -Source $feed -OutputDirectory .\uipath-cli -NonInteractive -NoCache -DirectDownload
-          if ($LASTEXITCODE -ne 0) { Write-Host "nuget install failed"; exit 1 }
+          if ($versions.Count -eq 0) { Write-Host 'No versions discovered for UiPath CLI'; exit 1 }
+          # Prefer latest stable (no -suffix), fallback to latest
+          $stable = $versions | Where-Object { $_ -notmatch '-' }
+          $chosen = if ($stable.Count -gt 0) { ($stable | Sort-Object {[version]$_})[-1] } else { ($versions | Sort-Object {[version]($_ -replace '-.*$','0')})[-1] }
+          Write-Host "Chosen version: $chosen"
+          New-Item -ItemType Directory -Path .\uipath-cli -Force | Out-Null
+          $nupkgUrl = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/$pkgId/$chosen/$pkgId.$chosen.nupkg"
+          Write-Host "Downloading $nupkgUrl"
+          Invoke-WebRequest -Uri $nupkgUrl -OutFile ".\uipath-cli\$pkgId.$chosen.nupkg" -UseBasicParsing
+          Write-Host "Expanding package..."
+          Expand-Archive -Path ".\uipath-cli\$pkgId.$chosen.nupkg" -DestinationPath .\uipath-cli -Force
 
       - name: Run pack and capture log
         id: pack-step
