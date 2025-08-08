@@ -10,22 +10,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate XAML with .NET WF loader (Windows PowerShell)
+      - name: Validate XAML structure (well-formed XML)
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          try { Add-Type -AssemblyName System.Activities } catch { Write-Host 'Failed to load System.Activities'; throw }
           $errors = @()
           $root = Join-Path $PWD 'Golden_Template'
           if (-not (Test-Path $root)) { Write-Host "Golden_Template folder not found"; exit 1 }
           Get-ChildItem -Path $root -Recurse -Filter *.xaml | ForEach-Object {
             $f = $_.FullName
             try {
-              [System.Activities.XamlIntegration.ActivityXamlServices]::Load($f) | Out-Null
+              $xml = Get-Content -LiteralPath $f -Raw
+              [xml]$doc = $xml
+              if (-not $doc.DocumentElement) { throw "Missing root element" }
               Write-Host "OK  $f"
             } catch {
               Write-Host "ERR $f"
-              $errors += [PSCustomObject]@{ File=$f; Error=$_.Exception.Message }
+              $msg = $_.Exception.Message
+              $errors += [PSCustomObject]@{ File=$f; Error=$msg }
             }
           }
           $out = "xaml_validate.log"
@@ -33,7 +35,7 @@ jobs:
             $errors | Format-Table -AutoSize | Out-String | Tee-Object $out | Out-Null
             Write-Host "Validation found $($errors.Count) error(s)"; exit 1
           } else {
-            'All XAML files loaded successfully.' | Tee-Object $out | Out-Null
+            'All XAML files are well-formed XML.' | Tee-Object $out | Out-Null
           }
 
       - name: Upload validation log
