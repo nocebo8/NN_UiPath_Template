@@ -1,0 +1,4 @@
+
+# Local CI helper outputs
+run_*.log
+ci-run-results-*/
