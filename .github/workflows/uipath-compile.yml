@@ -1,0 +1,23 @@
+name: UiPath Compile Check
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  pack:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download UiPath CLI (NuGet)
+        shell: pwsh
+        run: |
+          curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+          ./nuget.exe install UiPath.CLI.Windows -OutputDirectory .\uipath-cli -Source https://api.nuget.org/v3/index.json
+
+      - name: Pack (compile validation)
+        shell: pwsh
+        run: |
+          $cli = Get-ChildItem .\uipath-cli\UiPath.CLI.Windows.*\tools\uipcli.exe | Select-Object -First 1
+          & $cli pack --input "Golden_Template" --output ".\dist" --version "1.0.${{ github.run_number }}" --type Process
