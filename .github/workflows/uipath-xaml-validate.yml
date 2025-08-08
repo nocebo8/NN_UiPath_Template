@@ -25,7 +25,7 @@ jobs:
               if (-not $doc.DocumentElement) { throw "Missing root element" }
               Write-Host "OK  $f"
             } catch {
-              Write-Host "ERR $f"
+              Write-Host ("ERR {0} - {1}" -f $f, $_.Exception.Message)
               $msg = $_.Exception.Message
               $errors += [PSCustomObject]@{ File=$f; Error=$msg }
             }
