@@ -10,14 +10,63 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download UiPath CLI (NuGet)
+      - name: Download NuGet
         shell: pwsh
         run: |
           curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
-          ./nuget.exe install UiPath.CLI.Windows -OutputDirectory .\uipath-cli -Source https://api.nuget.org/v3/index.json
 
-      - name: Pack (compile validation)
+      - name: Add UiPath NuGet source and try install
         shell: pwsh
         run: |
-          $cli = Get-ChildItem .\uipath-cli\UiPath.CLI.Windows.*\tools\uipcli.exe | Select-Object -First 1
-          & $cli pack --input "Golden_Template" --output ".\dist" --version "1.0.${{ github.run_number }}" --type Process
+          $uipathFeed = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json"
+          Write-Host "Adding feed: $uipathFeed"
+          .\nuget.exe sources Add -Name "UiPath-Official" -Source $uipathFeed -NonInteractive -ConfigFile .\NuGet.Config 2>$null || Write-Host "source add returned non-zero (may already exist)"
+          Write-Host "Trying nuget install from UiPath-Official..."
+          $names = @("UiPath.CLI.Windows","UiPath.CLI","UiPath.Cli.Windows","UiPath.Cli")
+          $installed = $false
+          foreach ($n in $names) {
+            Write-Host "Attempting install package: $n"
+            & .\nuget.exe install $n -OutputDirectory .\uipath-cli -Source "UiPath-Official" -NonInteractive
+            if ($LASTEXITCODE -eq 0) { $installed = $true; break }
+          }
+          if (-not $installed) {
+            Write-Host "NuGet install failed for known ids — attempting direct nupkg fallback..."
+            # try a few plausible versions (adjust if needed)
+            $versions = @("1.3.0","1.2.0")
+            foreach ($v in $versions) {
+              $url = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/uipath.cli.windows/$v/uipath.cli.windows.$v.nupkg"
+              try {
+                Invoke-WebRequest -Uri $url -OutFile ".\uipath-cli\uipath.cli.windows.$v.nupkg" -UseBasicParsing -ErrorAction Stop
+                Expand-Archive -Path ".\uipath-cli\uipath.cli.windows.$v.nupkg" -DestinationPath .\uipath-cli -Force
+                $installed = $true
+                break
+              } catch {
+                Write-Host "direct download for version $v failed: $($_.Exception.Message)"
+              }
+            }
+          }
+          if (-not $installed) {
+            Write-Host "Install attempts failed; listing .\uipath-cli for debug:"
+            Get-ChildItem .\uipath-cli -Recurse -Force | Select-Object -First 200
+            exit 1
+          }
+
+      - name: Locate uipcli.exe and pack
+        shell: pwsh
+        run: |
+          $cli = Get-ChildItem .\uipath-cli -Recurse -Filter uipcli.exe | Select-Object -First 1
+          if (-not $cli) {
+            Write-Host "uipcli.exe not found in .\uipath-cli - listing contents for debug:"
+            Get-ChildItem .\uipath-cli -Recurse | Select-Object -First 200
+            exit 1
+          }
+          Write-Host "Using CLI: $($cli.FullName)"
+          & $cli.FullName pack --input "Golden_Template" --output ".\dist" --version "1.0.${{ github.run_number }}" --type Process 2>&1 | Tee-Object pack.log
+
+      - name: Upload pack artifacts and logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: uipath-pack-results
+          path: |
+            .\dist\*.nupkg
+            pack.log
