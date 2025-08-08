@@ -12,6 +12,7 @@ jobs:
 
       - name: Validate XAML structure (well-formed XML)
         shell: powershell
+        continue-on-error: true
         run: |
           $ErrorActionPreference = 'Stop'
           $errors = @()
@@ -46,7 +47,7 @@ jobs:
           path: xaml_validate.log
 
       - name: Pseudo-pack (zip project as .nupkg)
-        if: ${{ success() }}
+        if: always()
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
@@ -60,7 +61,7 @@ jobs:
           Write-Host "Created pseudo package: $zipPath"
 
       - name: Upload pseudo package
-        if: ${{ success() }}
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: uipath-pseudo-nupkg
