@@ -18,36 +18,25 @@ jobs:
         run: |
           curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
-      - name: Install UiPath CLI (download latest nupkg via registration API)
+      - name: Configure UiPath NuGet feed (authenticated)
+        shell: pwsh
+        env:
+          UIPATH_FEED_PAT: ${{ secrets.UIPATH_FEED_PAT }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:UIPATH_FEED_PAT) { Write-Host 'Missing secret UIPATH_FEED_PAT'; exit 1 }
+          $feed = 'https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/index.json'
+          dotnet --info | Out-Null
+          dotnet nuget remove source UiPath-Official 2>$null | Out-Null
+          dotnet nuget add source $feed --name UiPath-Official --username user --password "$env:UIPATH_FEED_PAT" --store-password-in-clear-text
+
+      - name: Install UiPath CLI
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $pkgId = 'uipath.cli.windows'
-          $regUrl = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/registration5-semver2/$pkgId/index.json"
-          Write-Host "Fetching registration index: $regUrl"
-          $json = Invoke-RestMethod -Uri $regUrl -UseBasicParsing
-          if (-not $json.items) { Write-Host 'No registration items found'; exit 1 }
-          $versions = @()
-          foreach ($page in $json.items) {
-            if ($page.items) {
-              foreach ($entry in $page.items) { $versions += $entry.catalogEntry.version }
-            } else {
-              # fetch page (property name contains '@')
-              $pageJson = Invoke-RestMethod -Uri $page.'@id' -UseBasicParsing
-              foreach ($entry in $pageJson.items) { $versions += $entry.catalogEntry.version }
-            }
-          }
-          if ($versions.Count -eq 0) { Write-Host 'No versions discovered for UiPath CLI'; exit 1 }
-          # Prefer latest stable (no -suffix), fallback to latest
-          $stable = $versions | Where-Object { $_ -notmatch '-' }
-          $chosen = if ($stable.Count -gt 0) { ($stable | Sort-Object {[version]$_})[-1] } else { ($versions | Sort-Object {[version]($_ -replace '-.*$','0')})[-1] }
-          Write-Host "Chosen version: $chosen"
           New-Item -ItemType Directory -Path .\uipath-cli -Force | Out-Null
-          $nupkgUrl = "https://pkgs.dev.azure.com/uipath/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/$pkgId/$chosen/$pkgId.$chosen.nupkg"
-          Write-Host "Downloading $nupkgUrl"
-          Invoke-WebRequest -Uri $nupkgUrl -OutFile ".\uipath-cli\$pkgId.$chosen.nupkg" -UseBasicParsing
-          Write-Host "Expanding package..."
-          Expand-Archive -Path ".\uipath-cli\$pkgId.$chosen.nupkg" -DestinationPath .\uipath-cli -Force
+          & .\nuget.exe install UiPath.CLI.Windows -Source UiPath-Official -OutputDirectory .\uipath-cli -NonInteractive -DirectDownload
+          if ($LASTEXITCODE -ne 0) { Write-Host 'nuget install failed'; exit 1 }
 
       - name: Run pack and capture log
         id: pack-step
